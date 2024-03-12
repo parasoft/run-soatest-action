@@ -1,0 +1,9 @@
+  name: 'Publishing Parasoft SOAtest results'
+  description: 'A GitHub Action for publishing Parasoft SOAtest results to GitHub in Junit.'
+  author: 'Parasoft'
+  branding:
+    icon: 'aperture'
+    color: 'blue'
+  runs:
+    using: node16
+    main: 'dist/index.js'

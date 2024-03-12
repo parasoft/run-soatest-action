@@ -1,0 +1,33 @@
+{
+  "name": "run-soatest-action",
+  "version": "1.0.0",
+  "description": "A GitHub Action for publishing Parasoft SOAtest report",
+  "main": "lib/main.js",
+  "scripts": {
+    "compile": "npx tsc -p ./",
+    "watch": "npx tsc -watch -p ./",
+    "lint": "npx eslint . --ext .ts -f checkstyle -o eslint/eslint-report.xml || true",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "package": "ncc build --license licenses.txt",
+    "clean": "rimraf ./dist ./lib ./eslint",
+    "all": "npm run clean && npm run compile && npm run lint && npm run package"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/parasoft/run-soatest-action.git"
+  },
+  "author": "Parasoft Corp.",
+  "license": "Apache-2.0",
+  "bugs": {
+    "url": "https://github.com/parasoft/run-soatest-action/issues"
+  },
+  "homepage": "https://github.com/parasoft/run-soatest-action#readme",
+  "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "^7.2.0",
+    "@typescript-eslint/parser": "^7.2.0",
+    "@vercel/ncc": "^0.38.1",
+    "eslint": "^8.57.0",
+    "rimraf": "^5.0.5",
+    "typescript": "^5.4.2"
+  }
+}

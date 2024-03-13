@@ -1,0 +1,9 @@
+  name: 'Publishing Parasoft SOAtest results'
+  description: 'A GitHub Action for running functional tests with Parasoft SOAtest and reviewing results directly in GitHub.'
+  author: 'Parasoft'
+  branding:
+    icon: 'aperture'
+    color: 'blue'
+  runs:
+    using: node16
+    main: 'dist/index.js'

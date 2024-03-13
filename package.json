@@ -1,7 +1,7 @@
 {
   "name": "run-soatest-action",
   "version": "1.0.0",
-  "description": "A GitHub Action for publishing Parasoft SOAtest report",
+  "description": "A GitHub Action for running functional tests with Parasoft SOAtest and reviewing results.",
   "main": "lib/main.js",
   "scripts": {
     "compile": "npx tsc -p ./",

@@ -1,7 +1,9 @@
 import * as cp from 'child_process';
+import * as os from 'os';
 import * as fs from 'fs';
 import * as pt from 'path';
 import * as core from "@actions/core";
+import * as SaxonJS from 'saxon-js';
 
 import { messages } from './messages'
 
@@ -16,11 +18,11 @@ export interface RunOptions {
     /* Working directory for running SOAtest. */
     workingDir: string;
 
-    /* Test configuration to be used when running code analysis. */
+    /* Test configuration to be used for test execution. */
     testConfig: string;
 
-    /* Output folder for analysis reports. */
-    reportDir: string;
+    /* Output folder for the test execution reports or a file with .xml suffix */
+    report: string;
 
     /* Specify a .properties file. */
     settings: string;
@@ -36,6 +38,9 @@ export interface RunOptions {
 
     /* Additional parameters for soatestcli executable. */
     additionalParams: string;
+
+    /* Root path of Java installation. */
+    javaRootPath: string;
 }
 
 export class AnalysisRunner {
@@ -43,28 +48,27 @@ export class AnalysisRunner {
         if (!fs.existsSync(runOptions.workingDir)) {
             return Promise.reject(messages.wrk_dir_not_exist + runOptions.workingDir);
         }
-        const commandLine = this.createCommandLine(runOptions).trim();
+        const commandLine = this.createSOAtestCommandLine(runOptions).trim();
         core.info(commandLine);
 
-        const runPromise = new Promise<RunDetails>((resolve, reject) => {
-            const cliEnv = this.createEnvironment();
+        let runPromise = new Promise<RunDetails>((resolve, reject) => {
+            const cliEnv = this.createParasoftEnvironment();
             const cliProcess = cp.spawn(`${commandLine}`, { cwd: runOptions.workingDir, env: cliEnv, shell: true, windowsHide: true });
-
-            cliProcess.stdout?.on('data', (data) => { core.info(`${data}`.replace(/\s+$/g, '')); });
-            cliProcess.stderr?.on('data', (data) => { core.info(`${data}`.replace(/\s+$/g, '')); });
-            cliProcess.on('close', (code) => {
-                const result: RunDetails = {
-                    exitCode: (code != null) ? code : 150 // 150 = signal received
-                };
-                resolve(result);
-            });
-            cliProcess.on("error", (err) => { reject(err); });
+            this.handleCliProcess(cliProcess, resolve, reject);
         });
+
+        if ((await runPromise).exitCode === 0) {
+            const xmlReportPath = this.findXmlReport(runOptions.report, runOptions.workingDir);
+            if (!xmlReportPath) {
+                return Promise.reject(`Can not process Parasoft SOAtest report due to the XML report can not be found related to report input value: ${runOptions.report}`);
+            }
+            runPromise = this.convertReportToXUnit(xmlReportPath, runOptions);
+        }
 
         return runPromise;
     }
 
-    private createCommandLine(runOptions : RunOptions) : string {
+    private createSOAtestCommandLine(runOptions : RunOptions) : string {
         let soatestcli = 'soatestcli';
 
         if (runOptions.installDir) {
@@ -89,8 +93,8 @@ export class AnalysisRunner {
             commandLine += ` -settings "${runOptions.settings}"`;
         }
 
-        if (runOptions.reportDir) {
-            commandLine += ` -report "${runOptions.reportDir}"`;
+        if (runOptions.report) {
+            commandLine += ` -report "${runOptions.report}"`;
         }
 
         if (runOptions.reportFormat) {
@@ -108,7 +112,7 @@ export class AnalysisRunner {
         return commandLine;
     }
 
-    private createEnvironment() : NodeJS.ProcessEnv {
+    private createParasoftEnvironment() : NodeJS.ProcessEnv {
         const environment: NodeJS.ProcessEnv = {};
         let isEncodingVariableDefined = false;
         for (const varName in process.env) {
@@ -123,5 +127,103 @@ export class AnalysisRunner {
             environment['PARASOFT_CONSOLE_ENCODING'] = 'utf-8';
         }
         return environment;
+    }
+
+    private findXmlReport(report: string, workingDir: string) : string | undefined {
+        const getReportPath = function (report: string) : string | undefined {
+            const stats = fs.statSync(report);
+            if (stats.isFile() && report.toLowerCase().endsWith('.xml')) {
+                return report;
+            }
+
+            if (stats.isDirectory()) {
+                report = pt.join(report, 'report.xml');
+                if (fs.existsSync(report)) {
+                    return report;
+                }
+            }
+        };
+
+        // with absolute path
+        if (fs.existsSync(report)) {
+            return getReportPath(report);
+        // with relative path
+        } else {
+            report = pt.join(workingDir, report);
+            return getReportPath(report);
+        }
+    }
+
+    private async convertReportToXUnit(xmlReportPath: string, runOptions: RunOptions): Promise<RunDetails> {
+        const outPath = xmlReportPath.substring(0, xmlReportPath.lastIndexOf('.xml')) + '-xunit.xml';
+        
+        core.info(`Converting Parasoft SOAtest report: ${xmlReportPath} to XUnit report"`);
+        let exitCode = 0;
+        const javaPath = this.getJavaPath(runOptions.javaRootPath);
+        if (javaPath) {
+            exitCode = (await this.convertReportWithJava(javaPath, xmlReportPath, outPath, runOptions.workingDir)).exitCode;
+        } else {
+            this.convertReportWithNodeJs(xmlReportPath, outPath, runOptions.workingDir);
+        }
+        if (exitCode == 0) {
+            core.info(`Converted XUnit report: ${outPath}`);
+        }
+        return { exitCode: exitCode };
+    }
+
+    private async convertReportWithJava(javaPath: string, sourcePath: string, outPath: string, defaultWorkingDirectory: string) : Promise<RunDetails>
+    {
+        core.info(`Using Java to convert report, Java path: ${javaPath}`);
+        // Transform with java
+        const jarPath = pt.join(__dirname, "SaxonHE12-2J/saxon-he-12.2.jar");
+        const xslPath = pt.join(__dirname, "soatest-xunit.xsl");
+
+        const commandLine = `"${javaPath}" -jar "${jarPath}" -s:"${sourcePath}" -xsl:"${xslPath}" -o:"${outPath}" -versionmsg:off pipelineBuildWorkingDirectory="${defaultWorkingDirectory}"`;
+        core.info(commandLine);
+
+        return await new Promise<RunDetails>((resolve, reject) => {
+            const cliProcess = cp.spawn(`${commandLine}`, {shell: true, windowsHide: true });
+            this.handleCliProcess(cliProcess, resolve, reject);
+        });
+    }
+
+    private handleCliProcess(cliProcess, resolve, reject) {
+        cliProcess.stdout?.on('data', (data) => { core.info(`${data}`.replace(/\s+$/g, '')); });
+        cliProcess.stderr?.on('data', (data) => { core.info(`${data}`.replace(/\s+$/g, '')); });
+        cliProcess.on('close', (code) => {
+            const result : RunDetails = {
+                exitCode : (code != null) ? code : 150 // 150 = signal received
+            };
+            resolve(result);
+        });
+        cliProcess.on("error", (err) => { reject(err); });
+    }
+
+    private convertReportWithNodeJs(sourcePath: string, outPath: string, defaultWorkingDirectory: string) : void
+    {
+        core.info(messages.use_nodejs_to_convert_report);
+        let xmlReportText = fs.readFileSync(sourcePath, 'utf8');
+        xmlReportText = xmlReportText.replace("<ResultsSession ", `<ResultsSession pipelineBuildWorkingDirectory="${defaultWorkingDirectory}" `);
+        const xslJsonText = fs.readFileSync(pt.join(__dirname, "soatest-xunit.sef.json"), 'utf8');
+        const options: SaxonJS.options = {
+            stylesheetText: xslJsonText,
+            sourceText: xmlReportText,
+            destination: "serialized"
+        };
+
+        const resultString = SaxonJS.transform(options).principalResult;
+        fs.writeFileSync(outPath, resultString);
+    }
+
+    private getJavaPath(javaRootPath: string): string | undefined {
+        if (!javaRootPath) {
+            return undefined;
+        }
+        const javaFileName = os.platform() == 'win32' ? "java.exe" : "java";
+        const javaFilePath = pt.join(javaRootPath, "bin", javaFileName);
+        if (fs.existsSync(javaFilePath)) {
+            return javaFilePath;
+        }
+        return undefined;
     }
 }

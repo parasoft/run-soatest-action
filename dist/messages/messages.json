@@ -1,7 +1,8 @@
 {
     "run_started": "Running SOAtest in ",
-    "run_failed": "Failed to run SOAtest",
+    "run_failed": "Run failed",
     "exit_code": "SOAtest run finished with code ",
     "failed_run_non_zero": "SOAtest run failed with a non-zero exit code: ",
-    "wrk_dir_not_exist": "Working directory does not exist: "
+    "wrk_dir_not_exist": "Working directory does not exist: ",
+    "use_nodejs_to_convert_report": "Using Node.js to convert report"
 }

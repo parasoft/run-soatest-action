@@ -23,8 +23,8 @@
     settings:
       description: 'Path to a settings file relative to the workspace.'
       required: false
-    reportDir:
-      description: 'Output folder for the test execution reports.'
+    report:
+      description: 'A relative or absolute path to output folder for the test execution reports or a XML file.'
       required: false
       default: 'reports'
     reportFormat:

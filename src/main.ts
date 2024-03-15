@@ -10,10 +10,11 @@ export async function run() {
             testConfig: core.getInput("testConfig", { required: false }),
             resource: core.getInput("resource", { required: false }),
             settings: core.getInput("settings", { required: false }),
-            reportDir: core.getInput("reportDir", { required: false }),
+            report: core.getInput("report", { required: false }),
             reportFormat: core.getInput("reportFormat", { required: false }),
             environment: core.getInput("environment", { required: false }),
-            additionalParams: core.getInput("additionalParams", { required: false })
+            additionalParams: core.getInput("additionalParams", { required: false }),
+            javaRootPath: core.getInput("javaRootPath", { required: false })
         };
 
         core.info(messages.run_started + runOptions.workingDir);
@@ -32,6 +33,8 @@ export async function run() {
         if (error instanceof Error) {
             core.error(error);
             core.setFailed(error.message);
+        } else if (typeof error === 'string' || error instanceof String){
+            core.setFailed(error.toString());
         }
     }
 }

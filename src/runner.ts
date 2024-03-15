@@ -44,10 +44,6 @@ export class AnalysisRunner {
             return Promise.reject(messages.wrk_dir_not_exist + runOptions.workingDir);
         }
         const commandLine = this.createCommandLine(runOptions).trim();
-        if (commandLine.length === 0) {
-            return Promise.reject(messages.cmd_cannot_be_empty);
-        }
-
         core.info(commandLine);
 
         const runPromise = new Promise<RunDetails>((resolve, reject) => {
@@ -70,26 +66,44 @@ export class AnalysisRunner {
 
     private createCommandLine(runOptions : RunOptions) : string {
         let soatestcli = 'soatestcli';
-        let environment = ''
 
         if (runOptions.installDir) {
-            soatestcli = '"' + pt.join(runOptions.installDir, soatestcli) + '"';
-        }
-        if (runOptions.environment) {
-            environment = '-environment "' + runOptions.environment + '"';
+            soatestcli = `"${pt.join(runOptions.installDir, soatestcli)}"`;
         }
 
-        const commandLine = "${soatestcli} -config \"${testConfig}\" -property report.format=${reportFormat} -report \"${reportDir}\" -data \"${workingDir}\" -resource \"${resource}\" -settings \"${settings}\" ${environment} ${additionalParams}".
-        replace('${soatestcli}', `${soatestcli}`).
-        replace('${workingDir}', `${runOptions.workingDir}`).
-        replace('${installDir}', `${runOptions.installDir}`).
-        replace('${testConfig}', `${runOptions.testConfig}`).
-        replace('${reportDir}', `${runOptions.reportDir}`).
-        replace('${reportFormat}', `${runOptions.reportFormat}`).
-        replace('${settings}', `${runOptions.settings}`).
-        replace('${resource}', `${runOptions.resource}`).
-        replace('${environment}', `${environment}`).
-        replace('${additionalParams}', `${runOptions.additionalParams}`);
+        let commandLine = soatestcli;
+
+        if (runOptions.workingDir) {
+            commandLine += ` -data "${runOptions.workingDir}"`;
+        }
+
+        if (runOptions.testConfig) {
+            commandLine += ` -config "${runOptions.testConfig}"`;
+        }
+
+        if (runOptions.resource) {
+            commandLine += ` -resource "${runOptions.resource}"`;
+        }
+
+        if (runOptions.settings) {
+            commandLine += ` -settings "${runOptions.settings}"`;
+        }
+
+        if (runOptions.reportDir) {
+            commandLine += ` -report "${runOptions.reportDir}"`;
+        }
+
+        if (runOptions.reportFormat) {
+            commandLine += ` -property report.format="${runOptions.reportFormat}"`;
+        }
+
+        if (runOptions.environment) {
+            commandLine += ` -environment "${runOptions.environment}"`;
+        }
+
+        if (runOptions.additionalParams) {
+            commandLine += ` ${runOptions.additionalParams}`;
+        }
 
         return commandLine;
     }

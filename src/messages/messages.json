@@ -3,6 +3,5 @@
     "run_failed": "Failed to run SOAtest",
     "exit_code": "SOAtest run finished with code ",
     "failed_run_non_zero": "SOAtest run failed with a non-zero exit code: ",
-    "wrk_dir_not_exist": "Working directory does not exist: ",
-    "cmd_cannot_be_empty": "Command line cannot be empty."
+    "wrk_dir_not_exist": "Working directory does not exist: "
 }

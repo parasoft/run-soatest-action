@@ -41,9 +41,6 @@ class AnalysisRunner {
             return Promise.reject(messages_1.messages.wrk_dir_not_exist + runOptions.workingDir);
         }
         const commandLine = this.createCommandLine(runOptions).trim();
-        if (commandLine.length === 0) {
-            return Promise.reject(messages_1.messages.cmd_cannot_be_empty);
-        }
         core.info(commandLine);
         const runPromise = new Promise((resolve, reject) => {
             var _a, _b;
@@ -63,24 +60,34 @@ class AnalysisRunner {
     }
     createCommandLine(runOptions) {
         let soatestcli = 'soatestcli';
-        let environment = '';
         if (runOptions.installDir) {
-            soatestcli = '"' + pt.join(runOptions.installDir, soatestcli) + '"';
+            soatestcli = `"${pt.join(runOptions.installDir, soatestcli)}"`;
+        }
+        let commandLine = soatestcli;
+        if (runOptions.workingDir) {
+            commandLine += ` -data "${runOptions.workingDir}"`;
+        }
+        if (runOptions.testConfig) {
+            commandLine += ` -config "${runOptions.testConfig}"`;
+        }
+        if (runOptions.resource) {
+            commandLine += ` -resource "${runOptions.resource}"`;
+        }
+        if (runOptions.settings) {
+            commandLine += ` -settings "${runOptions.settings}"`;
+        }
+        if (runOptions.reportDir) {
+            commandLine += ` -report "${runOptions.reportDir}"`;
+        }
+        if (runOptions.reportFormat) {
+            commandLine += ` -property report.format="${runOptions.reportFormat}"`;
         }
         if (runOptions.environment) {
-            environment = '-environment "' + runOptions.environment + '"';
+            commandLine += ` -environment "${runOptions.environment}"`;
         }
-        const commandLine = "${soatestcli} -config \"${testConfig}\" -property report.format=${reportFormat} -report \"${reportDir}\" -data \"${workingDir}\" -resource \"${resource}\" -settings \"${settings}\" ${environment} ${additionalParams}".
-            replace('${soatestcli}', `${soatestcli}`).
-            replace('${workingDir}', `${runOptions.workingDir}`).
-            replace('${installDir}', `${runOptions.installDir}`).
-            replace('${testConfig}', `${runOptions.testConfig}`).
-            replace('${reportDir}', `${runOptions.reportDir}`).
-            replace('${reportFormat}', `${runOptions.reportFormat}`).
-            replace('${settings}', `${runOptions.settings}`).
-            replace('${resource}', `${runOptions.resource}`).
-            replace('${environment}', `${environment}`).
-            replace('${additionalParams}', `${runOptions.additionalParams}`);
+        if (runOptions.additionalParams) {
+            commandLine += ` ${runOptions.additionalParams}`;
+        }
         return commandLine;
     }
     createEnvironment() {
@@ -26717,11 +26724,11 @@ async function run() {
             installDir: core.getInput("installDir", { required: false }),
             workingDir: core.getInput("workingDir", { required: false }),
             testConfig: core.getInput("testConfig", { required: false }),
-            reportDir: core.getInput("reportDir", { required: false }),
-            settings: core.getInput("settings", { required: false }),
             resource: core.getInput("resource", { required: false }),
-            environment: core.getInput("environment", { required: false }),
+            settings: core.getInput("settings", { required: false }),
+            reportDir: core.getInput("reportDir", { required: false }),
             reportFormat: core.getInput("reportFormat", { required: false }),
+            environment: core.getInput("environment", { required: false }),
             additionalParams: core.getInput("additionalParams", { required: false })
         };
         core.info(messages_1.messages.run_started + runOptions.workingDir);

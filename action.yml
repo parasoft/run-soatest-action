@@ -13,30 +13,30 @@
       required: false
       default: ${{ github.workspace }}
     testConfig:
-      description: 'Test configuration to be used for code analysis.'
+      description: 'Test configuration to be used for test execution.'
       required: false
       default: 'user://Example Configuration'
+    resource:
+      description: 'Path to the test suite(s) relative to the workspace.'
+      required: false
+      default: 'TestAssets'
+    settings:
+      description: 'Path to a settings file relative to the workspace.'
+      required: false
     reportDir:
-      description: 'Output folder for reports from code analysis.'
+      description: 'Output folder for the test execution reports.'
       required: false
       default: 'reports'
     reportFormat:
-      description: 'Format of reports from code analysis, including html, pdf, sate, xunit and custom.'
+      description: 'Format of test execution reports.'
       required: false
-      default: 'html'
-    settings:
-      description: 'Path to a settings file relative to the workspace. Use a semicolon-separated list to specify multiple paths.'
-      required: false
-    resource:
-      description: 'Path to the test suite(s) relative to the workspace. Use multiple resource parameters to run multiple test suites.'
-      required: false
+      default: 'xml,html'
     environment:
-      description: 'Path to to a environment file relative to the workspace. Use a semicolon-separated list to specify multiple paths.'
+      description: 'Path to to a environment file relative to the workspace.'
       required: false
     additionalParams:
       description: 'Additional parameters for the soatestcli executable.'
       required: false
-      default: ''
   runs:
     using: node16
     main: 'dist/index.js'

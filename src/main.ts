@@ -8,11 +8,11 @@ export async function run() {
             installDir: core.getInput("installDir", { required: false }),
             workingDir: core.getInput("workingDir", { required: false }),
             testConfig: core.getInput("testConfig", { required: false }),
-            reportDir: core.getInput("reportDir", { required: false }),
-            settings: core.getInput("settings", { required: false }),
             resource: core.getInput("resource", { required: false }),
-            environment: core.getInput("environment", { required: false }),
+            settings: core.getInput("settings", { required: false }),
+            reportDir: core.getInput("reportDir", { required: false }),
             reportFormat: core.getInput("reportFormat", { required: false }),
+            environment: core.getInput("environment", { required: false }),
             additionalParams: core.getInput("additionalParams", { required: false })
         };
 

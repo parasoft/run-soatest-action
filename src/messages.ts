@@ -11,7 +11,6 @@ class Messages implements ISerializable<Messages> {
     exit_code!: string;
     failed_run_non_zero!: string;
     wrk_dir_not_exist!: string;
-    cmd_cannot_be_empty!: string;
 
     deserialize(jsonPath: string) : Messages {
         const buf = fs.readFileSync(jsonPath);

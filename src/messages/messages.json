@@ -4,5 +4,9 @@
     "exit_code": "SOAtest run finished with code ",
     "failed_run_non_zero": "SOAtest run failed with a non-zero exit code: ",
     "wrk_dir_not_exist": "Working directory does not exist: ",
-    "use_nodejs_to_convert_report": "Using Node.js to convert report"
+    "can_not_process_soatest_report": "Can not process Parasoft SOAtest report due to the XML report can not be found related to report input value: {0}",
+    "converting_soatest_report_to_xunit": "Converting Parasoft SOAtest report: {0} to XUnit report",
+    "converted_xunit_report": "Converted XUnit report: {0}",
+    "use_nodejs_to_convert_report": "Using Node.js to convert report",
+    "using_java_to_convert_report": "Using Java to convert report, Java path: {0}"
 }

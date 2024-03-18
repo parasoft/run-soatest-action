@@ -8,10 +8,12 @@
     "watch": "npx tsc -watch -p ./",
     "lint": "npx eslint . --ext .ts -f checkstyle -o eslint/eslint-report.xml || true",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "package": "ncc build --license licenses.txt && copyfiles --flat ./src/messages/*.json ./dist/messages && copyfiles --up 1 ./data/**/* ./dist",
+    "merge-licenses": "node ./merge-licenses.js",
+    "copy-files": "copyfiles --flat ./src/messages/*.json ./dist/messages && copyfiles --flat ./data/*.xsl ./dist && copyfiles --up 1 ./data/SaxonHE12-2J/**/* ./dist",
+    "package": "ncc build --license licenses.txt && npm run copy-files && npm run merge-licenses",
     "clean": "rimraf ./dist ./lib ./eslint",
-    "all": "npm run clean && npm run compile && npm run lint && npm run package && npm run compilexsl",
-    "compilexsl": "node node_modules/xslt3/xslt3.js -t -xsl:./dist/soatest-xunit.xsl -export:./dist/soatest-xunit.sef.json -nogo"
+    "all": "npm run clean && npm run compile && npm run lint && npm run package && npm run compile-xsl",
+    "compile-xsl": "node node_modules/xslt3/xslt3.js -t -xsl:./dist/soatest-xunit.xsl -export:./dist/soatest-xunit.sef.json -nogo"
   },
   "repository": {
     "type": "git",
@@ -24,7 +26,8 @@
   },
   "homepage": "https://github.com/parasoft/run-soatest-action#readme",
   "dependencies": {
-    "saxon-js": "^2.6.0"
+    "saxon-js": "^2.6.0",
+    "string-format": "2.0.0"
   },
   "devDependencies": {
     "@actions/core": "^1.10.1",

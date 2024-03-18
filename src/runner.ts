@@ -5,7 +5,7 @@ import * as pt from 'path';
 import * as core from "@actions/core";
 import * as SaxonJS from 'saxon-js';
 
-import { messages } from './messages'
+import { messages, messagesFormatter } from './messages'
 
 export interface RunDetails {
     exitCode : number
@@ -41,6 +41,9 @@ export interface RunOptions {
 
     /* Root path of Java installation. */
     javaRootPath: string;
+
+    /* Convert Parasoft SOAtest report to XUnit format. */
+    convertReportToXunit: boolean; 
 }
 
 export class AnalysisRunner {
@@ -57,12 +60,12 @@ export class AnalysisRunner {
             this.handleCliProcess(cliProcess, resolve, reject);
         });
 
-        if ((await runPromise).exitCode === 0) {
-            const xmlReportPath = this.findXmlReport(runOptions.report, runOptions.workingDir);
-            if (!xmlReportPath) {
-                return Promise.reject(`Can not process Parasoft SOAtest report due to the XML report can not be found related to report input value: ${runOptions.report}`);
+        if ((await runPromise).exitCode === 0 && runOptions.convertReportToXunit) {
+            const parasoftXmlReportPath = this.findParasoftXmlReport(runOptions.report, runOptions.workingDir);
+            if (!parasoftXmlReportPath) {
+                return Promise.reject(messagesFormatter.format(messages.can_not_process_soatest_report, runOptions.report));
             }
-            runPromise = this.convertReportToXUnit(xmlReportPath, runOptions);
+            runPromise = this.convertReportToXUnit(parasoftXmlReportPath, runOptions);
         }
 
         return runPromise;
@@ -129,7 +132,7 @@ export class AnalysisRunner {
         return environment;
     }
 
-    private findXmlReport(report: string, workingDir: string) : string | undefined {
+    private findParasoftXmlReport(report: string, workingDir: string) : string | undefined {
         const getReportPath = function (report: string) : string | undefined {
             const stats = fs.statSync(report);
             if (stats.isFile() && report.toLowerCase().endsWith('.xml')) {
@@ -157,7 +160,7 @@ export class AnalysisRunner {
     private async convertReportToXUnit(xmlReportPath: string, runOptions: RunOptions): Promise<RunDetails> {
         const outPath = xmlReportPath.substring(0, xmlReportPath.lastIndexOf('.xml')) + '-xunit.xml';
         
-        core.info(`Converting Parasoft SOAtest report: ${xmlReportPath} to XUnit report"`);
+        core.info(messagesFormatter.format(messages.converting_soatest_report_to_xunit, xmlReportPath));
         let exitCode = 0;
         const javaPath = this.getJavaPath(runOptions.javaRootPath);
         if (javaPath) {
@@ -166,14 +169,14 @@ export class AnalysisRunner {
             this.convertReportWithNodeJs(xmlReportPath, outPath, runOptions.workingDir);
         }
         if (exitCode == 0) {
-            core.info(`Converted XUnit report: ${outPath}`);
+            core.info(messagesFormatter.format(messages.converted_xunit_report, outPath));
         }
         return { exitCode: exitCode };
     }
 
     private async convertReportWithJava(javaPath: string, sourcePath: string, outPath: string, defaultWorkingDirectory: string) : Promise<RunDetails>
     {
-        core.info(`Using Java to convert report, Java path: ${javaPath}`);
+        core.info(messagesFormatter.format(messages.using_java_to_convert_report, javaPath));
         // Transform with java
         const jarPath = pt.join(__dirname, "SaxonHE12-2J/saxon-he-12.2.jar");
         const xslPath = pt.join(__dirname, "soatest-xunit.xsl");
@@ -185,18 +188,6 @@ export class AnalysisRunner {
             const cliProcess = cp.spawn(`${commandLine}`, {shell: true, windowsHide: true });
             this.handleCliProcess(cliProcess, resolve, reject);
         });
-    }
-
-    private handleCliProcess(cliProcess, resolve, reject) {
-        cliProcess.stdout?.on('data', (data) => { core.info(`${data}`.replace(/\s+$/g, '')); });
-        cliProcess.stderr?.on('data', (data) => { core.info(`${data}`.replace(/\s+$/g, '')); });
-        cliProcess.on('close', (code) => {
-            const result : RunDetails = {
-                exitCode : (code != null) ? code : 150 // 150 = signal received
-            };
-            resolve(result);
-        });
-        cliProcess.on("error", (err) => { reject(err); });
     }
 
     private convertReportWithNodeJs(sourcePath: string, outPath: string, defaultWorkingDirectory: string) : void
@@ -213,6 +204,18 @@ export class AnalysisRunner {
 
         const resultString = SaxonJS.transform(options).principalResult;
         fs.writeFileSync(outPath, resultString);
+    }
+
+    private handleCliProcess(cliProcess, resolve, reject) {
+        cliProcess.stdout?.on('data', (data) => { core.info(`${data}`.replace(/\s+$/g, '')); });
+        cliProcess.stderr?.on('data', (data) => { core.info(`${data}`.replace(/\s+$/g, '')); });
+        cliProcess.on('close', (code) => {
+            const result : RunDetails = {
+                exitCode : (code != null) ? code : 150 // 150 = signal received
+            };
+            resolve(result);
+        });
+        cliProcess.on("error", (err) => { reject(err); });
     }
 
     private getJavaPath(javaRootPath: string): string | undefined {

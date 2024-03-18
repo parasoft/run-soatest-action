@@ -24,7 +24,7 @@
       description: 'Path to a settings file relative to the workspace.'
       required: false
     report:
-      description: 'A relative or absolute path to output folder for the test execution reports or a XML file.'
+      description: 'The path to output folder or a XML file for the test execution reports.'
       required: false
       default: 'reports'
     reportFormat:
@@ -37,6 +37,10 @@
     additionalParams:
       description: 'Additional parameters for the soatestcli executable.'
       required: false
+    convertReportToXunit:
+      description: 'Converts the SOAtest report to xUnit format.'
+      required: false
+      default: true
   runs:
     using: node16
     main: 'dist/index.js'

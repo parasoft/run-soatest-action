@@ -7,9 +7,10 @@
 "use strict";
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.messages = void 0;
+exports.messagesFormatter = exports.messages = void 0;
 const fs = __nccwpck_require__(7147);
 const pt = __nccwpck_require__(1017);
+const format = __nccwpck_require__(3259);
 class Messages {
     deserialize(jsonPath) {
         const buf = fs.readFileSync(jsonPath);
@@ -17,8 +18,14 @@ class Messages {
         return json;
     }
 }
+class Formatter {
+    format(template, ...args) {
+        return format(template, ...args);
+    }
+}
 const jsonPath = pt.join(__dirname, 'messages/messages.json');
 exports.messages = new Messages().deserialize(jsonPath);
+exports.messagesFormatter = new Formatter();
 //# sourceMappingURL=messages.js.map
 
 /***/ }),
@@ -49,12 +56,12 @@ class AnalysisRunner {
             const cliProcess = cp.spawn(`${commandLine}`, { cwd: runOptions.workingDir, env: cliEnv, shell: true, windowsHide: true });
             this.handleCliProcess(cliProcess, resolve, reject);
         });
-        if ((await runPromise).exitCode === 0) {
-            const xmlReportPath = this.findXmlReport(runOptions.report, runOptions.workingDir);
-            if (!xmlReportPath) {
-                return Promise.reject(`Can not process Parasoft SOAtest report due to the XML report can not be found related to report input value: ${runOptions.report}`);
+        if ((await runPromise).exitCode === 0 && runOptions.convertReportToXunit) {
+            const parasoftXmlReportPath = this.findParasoftXmlReport(runOptions.report, runOptions.workingDir);
+            if (!parasoftXmlReportPath) {
+                return Promise.reject(messages_1.messagesFormatter.format(messages_1.messages.can_not_process_soatest_report, runOptions.report));
             }
-            runPromise = this.convertReportToXUnit(xmlReportPath, runOptions);
+            runPromise = this.convertReportToXUnit(parasoftXmlReportPath, runOptions);
         }
         return runPromise;
     }
@@ -106,7 +113,7 @@ class AnalysisRunner {
         }
         return environment;
     }
-    findXmlReport(report, workingDir) {
+    findParasoftXmlReport(report, workingDir) {
         const getReportPath = function (report) {
             const stats = fs.statSync(report);
             if (stats.isFile() && report.toLowerCase().endsWith('.xml')) {
@@ -131,7 +138,7 @@ class AnalysisRunner {
     }
     async convertReportToXUnit(xmlReportPath, runOptions) {
         const outPath = xmlReportPath.substring(0, xmlReportPath.lastIndexOf('.xml')) + '-xunit.xml';
-        core.info(`Converting Parasoft SOAtest report: ${xmlReportPath} to XUnit report"`);
+        core.info(messages_1.messagesFormatter.format(messages_1.messages.converting_soatest_report_to_xunit, xmlReportPath));
         let exitCode = 0;
         const javaPath = this.getJavaPath(runOptions.javaRootPath);
         if (javaPath) {
@@ -141,12 +148,12 @@ class AnalysisRunner {
             this.convertReportWithNodeJs(xmlReportPath, outPath, runOptions.workingDir);
         }
         if (exitCode == 0) {
-            core.info(`Converted XUnit report: ${outPath}`);
+            core.info(messages_1.messagesFormatter.format(messages_1.messages.converted_xunit_report, outPath));
         }
         return { exitCode: exitCode };
     }
     async convertReportWithJava(javaPath, sourcePath, outPath, defaultWorkingDirectory) {
-        core.info(`Using Java to convert report, Java path: ${javaPath}`);
+        core.info(messages_1.messagesFormatter.format(messages_1.messages.using_java_to_convert_report, javaPath));
         // Transform with java
         const jarPath = pt.join(__dirname, "SaxonHE12-2J/saxon-he-12.2.jar");
         const xslPath = pt.join(__dirname, "soatest-xunit.xsl");
@@ -156,18 +163,6 @@ class AnalysisRunner {
             const cliProcess = cp.spawn(`${commandLine}`, { shell: true, windowsHide: true });
             this.handleCliProcess(cliProcess, resolve, reject);
         });
-    }
-    handleCliProcess(cliProcess, resolve, reject) {
-        var _a, _b;
-        (_a = cliProcess.stdout) === null || _a === void 0 ? void 0 : _a.on('data', (data) => { core.info(`${data}`.replace(/\s+$/g, '')); });
-        (_b = cliProcess.stderr) === null || _b === void 0 ? void 0 : _b.on('data', (data) => { core.info(`${data}`.replace(/\s+$/g, '')); });
-        cliProcess.on('close', (code) => {
-            const result = {
-                exitCode: (code != null) ? code : 150 // 150 = signal received
-            };
-            resolve(result);
-        });
-        cliProcess.on("error", (err) => { reject(err); });
     }
     convertReportWithNodeJs(sourcePath, outPath, defaultWorkingDirectory) {
         core.info(messages_1.messages.use_nodejs_to_convert_report);
@@ -181,6 +176,18 @@ class AnalysisRunner {
         };
         const resultString = SaxonJS.transform(options).principalResult;
         fs.writeFileSync(outPath, resultString);
+    }
+    handleCliProcess(cliProcess, resolve, reject) {
+        var _a, _b;
+        (_a = cliProcess.stdout) === null || _a === void 0 ? void 0 : _a.on('data', (data) => { core.info(`${data}`.replace(/\s+$/g, '')); });
+        (_b = cliProcess.stderr) === null || _b === void 0 ? void 0 : _b.on('data', (data) => { core.info(`${data}`.replace(/\s+$/g, '')); });
+        cliProcess.on('close', (code) => {
+            const result = {
+                exitCode: (code != null) ? code : 150 // 150 = signal received
+            };
+            resolve(result);
+        });
+        cliProcess.on("error", (err) => { reject(err); });
     }
     getJavaPath(javaRootPath) {
         if (!javaRootPath) {
@@ -10339,6 +10346,105 @@ z;return Promise.resolve(S)}catch(S){return Promise.reject(new H("Failed parsing
 internalTransform:h,checkOptions:y,convertResult:m,makeAtomicValue:function(A,F){return Sa.type[A].fromString(F)},registerExtensionFunctions:function(A){Ni.jg(A);Qi.jg(A)},getItemDetails:function(A){if(Sa.ka(A)){const F={variety:"atomic",type:A.type,value:A.toString()};"AQ"===A.code&&(F.prefix=A.prefix,F.uri=A.q,F.local=A.local);return F}return fc.Q(A)?{variety:"node",type:A.nodeType()}:{variety:A instanceof id?"array":"map"}},getConfigurationProperties:function(){const A={};Object.keys(O).forEach(F=>
 {A[F]=O[F]});return A},getConfigurationProperty:function(A){if(A in O)return O[A]},setConfigurationProperties:function(A){const F={};Object.keys(O).forEach(z=>{F[z]=O[z]});Object.keys(A).forEach(z=>{"autoResetIndexes"==z?O[z]=!!A[z]:Aa.Qa("The configuration property "+z+" is unrecognized")});return F},setConfigurationProperty:function(A,F){if("autoResetIndexes"==A){let z=O[A];O[A]=!!F;return z}Aa.Qa("The configuration property "+A+" is unrecognized")},resetIndexes:function(A){X&&!A&&(A=window.document);
 return A&&"_saxonIndexes"in A?(delete A._saxonIndexes,delete A._saxonIndexesBC,!0):!1},XdmArray:id,XdmAtomicValue:Ra,XdmAttributeNode:ec,XdmFunction:jd,XdmMap:lc,XError:H,XPath:Ii,XS:ma};X||"undefined"!==typeof HostPlatform?(HostPlatform.entryPoint=ca,a(HostPlatform),B.expose(ca,"SaxonJS")):console.log("Platform binding delayed");ca.Developer=Ri;Sa.fg();Ma.fg();vc();Pd.register("SaxonJS",ca);return ca})();
+
+
+/***/ }),
+
+/***/ 3259:
+/***/ (function(module) {
+
+void function(global) {
+
+  'use strict';
+
+  //  ValueError :: String -> Error
+  function ValueError(message) {
+    var err = new Error(message);
+    err.name = 'ValueError';
+    return err;
+  }
+
+  //  create :: Object -> String,*... -> String
+  function create(transformers) {
+    return function(template) {
+      var args = Array.prototype.slice.call(arguments, 1);
+      var idx = 0;
+      var state = 'UNDEFINED';
+
+      return template.replace(
+        /([{}])\1|[{](.*?)(?:!(.+?))?[}]/g,
+        function(match, literal, _key, xf) {
+          if (literal != null) {
+            return literal;
+          }
+          var key = _key;
+          if (key.length > 0) {
+            if (state === 'IMPLICIT') {
+              throw ValueError('cannot switch from ' +
+                               'implicit to explicit numbering');
+            }
+            state = 'EXPLICIT';
+          } else {
+            if (state === 'EXPLICIT') {
+              throw ValueError('cannot switch from ' +
+                               'explicit to implicit numbering');
+            }
+            state = 'IMPLICIT';
+            key = String(idx);
+            idx += 1;
+          }
+
+          //  1.  Split the key into a lookup path.
+          //  2.  If the first path component is not an index, prepend '0'.
+          //  3.  Reduce the lookup path to a single result. If the lookup
+          //      succeeds the result is a singleton array containing the
+          //      value at the lookup path; otherwise the result is [].
+          //  4.  Unwrap the result by reducing with '' as the default value.
+          var path = key.split('.');
+          var value = (/^\d+$/.test(path[0]) ? path : ['0'].concat(path))
+            .reduce(function(maybe, key) {
+              return maybe.reduce(function(_, x) {
+                return x != null && key in Object(x) ?
+                  [typeof x[key] === 'function' ? x[key]() : x[key]] :
+                  [];
+              }, []);
+            }, [args])
+            .reduce(function(_, x) { return x; }, '');
+
+          if (xf == null) {
+            return value;
+          } else if (Object.prototype.hasOwnProperty.call(transformers, xf)) {
+            return transformers[xf](value);
+          } else {
+            throw ValueError('no transformer named "' + xf + '"');
+          }
+        }
+      );
+    };
+  }
+
+  //  format :: String,*... -> String
+  var format = create({});
+
+  //  format.create :: Object -> String,*... -> String
+  format.create = create;
+
+  //  format.extend :: Object,Object -> ()
+  format.extend = function(prototype, transformers) {
+    var $format = create(transformers);
+    prototype.format = function() {
+      var args = Array.prototype.slice.call(arguments);
+      args.unshift(this);
+      return $format.apply(global, args);
+    };
+  };
+
+  /* istanbul ignore else */
+  if (true) {
+    module.exports = format;
+  } else {}
+
+}.call(this, this);
 
 
 /***/ }),
@@ -39654,7 +39760,8 @@ async function run() {
             reportFormat: core.getInput("reportFormat", { required: false }),
             environment: core.getInput("environment", { required: false }),
             additionalParams: core.getInput("additionalParams", { required: false }),
-            javaRootPath: core.getInput("javaRootPath", { required: false })
+            javaRootPath: core.getInput("javaRootPath", { required: false }),
+            convertReportToXunit: core.getBooleanInput("convertReportToXunit", { required: false }),
         };
         core.info(messages_1.messages.run_started + runOptions.workingDir);
         const theRunner = new runner.AnalysisRunner();

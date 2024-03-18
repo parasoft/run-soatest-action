@@ -14,7 +14,8 @@ export async function run() {
             reportFormat: core.getInput("reportFormat", { required: false }),
             environment: core.getInput("environment", { required: false }),
             additionalParams: core.getInput("additionalParams", { required: false }),
-            javaRootPath: core.getInput("javaRootPath", { required: false })
+            javaRootPath: core.getInput("javaRootPath", { required: false }),
+            convertReportToXunit: core.getBooleanInput("convertReportToXunit", { required: false }),
         };
 
         core.info(messages.run_started + runOptions.workingDir);

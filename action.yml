@@ -1,4 +1,4 @@
-  name: 'Publishing Parasoft SOAtest results'
+  name: 'Run Parasoft SOAtest'
   description: 'A GitHub Action for running functional tests with Parasoft SOAtest and reviewing results directly in GitHub.'
   author: 'Parasoft'
   branding:
@@ -17,22 +17,22 @@
       required: false
       default: 'user://Example Configuration'
     resource:
-      description: 'Path to the test suite(s) relative to the workspace.'
+      description: 'The path to the test suite(s) relative to the workspace.'
       required: false
       default: 'TestAssets'
     settings:
-      description: 'Path to a settings file relative to the workspace.'
+      description: 'Setting file used to configure execution preferences.'
       required: false
     reportDir:
-      description: 'Output folder for the test execution reports.'
+      description: 'Output folder for reports from test execution.'
       required: false
       default: 'reports'
     reportFormat:
-      description: 'Format of test execution reports.'
+      description: 'Format of reports from test execution.'
       required: false
       default: 'xml,html'
     environment:
-      description: 'Path to to a environment file relative to the workspace.'
+      description: 'Name of the SOAtest environment to use for executing the tests.'
       required: false
     additionalParams:
       description: 'Additional parameters for the soatestcli executable.'

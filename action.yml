@@ -23,8 +23,8 @@
     settings:
       description: 'Setting file used to configure execution preferences.'
       required: false
-    reportDir:
-      description: 'Output folder for reports from test execution.'
+    report:
+      description: 'The path to output folder or a XML file for the test execution reports.'
       required: false
       default: 'reports'
     reportFormat:
@@ -36,6 +36,13 @@
       required: false
     additionalParams:
       description: 'Additional parameters for the soatestcli executable.'
+      required: false
+    convertReportToXunit:
+      description: 'Convert the SOAtest report to xUnit format.'
+      required: false
+      default: true
+    javaRootPath:
+      description: 'Absolute location of the root path of Java installation. When found at the specified location, Java optimizes the efficiency of report processing. Otherwise, report processing will be significantly slower and may encounter memory issues when handling large reports.'
       required: false
   runs:
     using: node16

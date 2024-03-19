@@ -20,7 +20,7 @@ export interface RunOptions {
     /* Test configuration to be used for test execution. */
     testConfig: string;
 
-    /* Output folder for the test execution reports or a file with .xml suffix */
+    /* Specify a path to output folder or a file for the test execution reports. */
     report: string;
 
     /* Specify a .properties file. */
@@ -29,24 +29,24 @@ export interface RunOptions {
     /* Specify the test suite(s) to run. */
     resource: string;
 
-    /* Format of analysis reports. */
+    /* Format of test execution reports. */
     reportFormat: string;
 
     /* Specify a .env file. */
     environment: string;
 
-    /* Additional parameters for soatestcli executable. */
-    additionalParams: string;
-
     /* Root path of Java installation. */
     javaRootPath: string;
 
     /* Convert Parasoft SOAtest report to XUnit format. */
-    convertReportToXunit: boolean; 
+    convertReportToXUnit: boolean; 
+
+    /* Additional parameters for soatestcli executable. */
+    additionalParams: string;
 }
 
-export class AnalysisRunner {
-    async runSOATest(runOptions : RunOptions) : Promise<RunDetails> {
+export class TestsRunner {
+    async runSOAtest(runOptions : RunOptions) : Promise<RunDetails> {
         if (!fs.existsSync(runOptions.workingDir)) {
             return Promise.reject(messagesFormatter.format(messages.wrk_dir_not_exist, runOptions.workingDir));
         }
@@ -65,7 +65,7 @@ export class AnalysisRunner {
     async convertReportToXUnit(runOptions: RunOptions): Promise<RunDetails> {
         const parasoftXmlReportPath = this.findParasoftXmlReport(runOptions.report, runOptions.workingDir);
         if (!parasoftXmlReportPath) {
-            return Promise.reject(messagesFormatter.format(messages.can_not_process_soatest_report, runOptions.report));
+            return Promise.reject(messagesFormatter.format(messages.soatest_report_not_found, runOptions.report));
         }
 
         const xunitPath = parasoftXmlReportPath.substring(0, parasoftXmlReportPath.lastIndexOf('.xml')) + '-xunit.xml';
@@ -148,14 +148,25 @@ export class AnalysisRunner {
 
     private findParasoftXmlReport(report: string, workingDir: string) : string | undefined {
         const getReportPath = function (report: string) : string | undefined {
+            if (!fs.existsSync(report)) {
+                return undefined;
+            }
+
             const stats = fs.statSync(report);
-            if (stats.isFile() && report.toLowerCase().endsWith('.xml')) {
-                return report;
+            if (stats.isFile()) {
+                report = report.replace(report.substring(report.lastIndexOf('.')), '.xml');
+                if (fs.existsSync(report)) {
+                    core.info(messagesFormatter.format(messages.found_xml_report, report));
+                    return report;
+                }
+                return undefined;
             }
 
             if (stats.isDirectory()) {
+                core.info(messagesFormatter.format(messages.try_to_find_xml_report_in_folder, report));
                 report = pt.join(report, 'report.xml');
                 if (fs.existsSync(report)) {
+                    core.info(messagesFormatter.format(messages.found_xml_report, report));
                     return report;
                 }
             }
@@ -163,9 +174,11 @@ export class AnalysisRunner {
 
         // with absolute path
         if (fs.existsSync(report)) {
+            core.info(messagesFormatter.format(messages.try_to_find_xml_report_with_absolute_path, report));
             return getReportPath(report);
         // with relative path
         } else {
+            core.info(messagesFormatter.format(messages.try_to_find_xml_report_with_relative_path, workingDir, report));
             report = pt.join(workingDir, report);
             return getReportPath(report);
         }

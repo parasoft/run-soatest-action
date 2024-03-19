@@ -12,7 +12,11 @@ class Messages implements ISerializable<Messages> {
     exit_code!: string;
     failed_run_non_zero!: string;
     wrk_dir_not_exist!: string;
-    can_not_process_soatest_report!: string;
+    found_xml_report!: string;
+    try_to_find_xml_report_in_folder!: string;
+    try_to_find_xml_report_with_absolute_path!: string;
+    try_to_find_xml_report_with_relative_path!: string;
+    soatest_report_not_found!: string;
     converting_soatest_report_to_xunit!: string;
     converted_xunit_report!: string;
     use_nodejs_to_convert_report!: string;

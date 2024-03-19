@@ -36,7 +36,7 @@ exports.messagesFormatter = new Formatter();
 "use strict";
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.AnalysisRunner = void 0;
+exports.TestsRunner = void 0;
 const cp = __nccwpck_require__(2081);
 const os = __nccwpck_require__(2037);
 const fs = __nccwpck_require__(7147);
@@ -44,8 +44,8 @@ const pt = __nccwpck_require__(1017);
 const core = __nccwpck_require__(2186);
 const SaxonJS = __nccwpck_require__(5805);
 const messages_1 = __nccwpck_require__(9112);
-class AnalysisRunner {
-    async runSOATest(runOptions) {
+class TestsRunner {
+    async runSOAtest(runOptions) {
         if (!fs.existsSync(runOptions.workingDir)) {
             return Promise.reject(messages_1.messagesFormatter.format(messages_1.messages.wrk_dir_not_exist, runOptions.workingDir));
         }
@@ -61,7 +61,7 @@ class AnalysisRunner {
     async convertReportToXUnit(runOptions) {
         const parasoftXmlReportPath = this.findParasoftXmlReport(runOptions.report, runOptions.workingDir);
         if (!parasoftXmlReportPath) {
-            return Promise.reject(messages_1.messagesFormatter.format(messages_1.messages.can_not_process_soatest_report, runOptions.report));
+            return Promise.reject(messages_1.messagesFormatter.format(messages_1.messages.soatest_report_not_found, runOptions.report));
         }
         const xunitPath = parasoftXmlReportPath.substring(0, parasoftXmlReportPath.lastIndexOf('.xml')) + '-xunit.xml';
         core.info(messages_1.messagesFormatter.format(messages_1.messages.converting_soatest_report_to_xunit, parasoftXmlReportPath));
@@ -128,23 +128,35 @@ class AnalysisRunner {
     }
     findParasoftXmlReport(report, workingDir) {
         const getReportPath = function (report) {
+            if (!fs.existsSync(report)) {
+                return undefined;
+            }
             const stats = fs.statSync(report);
-            if (stats.isFile() && report.toLowerCase().endsWith('.xml')) {
-                return report;
+            if (stats.isFile()) {
+                report = report.replace(report.substring(report.lastIndexOf('.')), '.xml');
+                if (fs.existsSync(report)) {
+                    core.info(messages_1.messagesFormatter.format(messages_1.messages.found_xml_report, report));
+                    return report;
+                }
+                return undefined;
             }
             if (stats.isDirectory()) {
+                core.info(messages_1.messagesFormatter.format(messages_1.messages.try_to_find_xml_report_in_folder, report));
                 report = pt.join(report, 'report.xml');
                 if (fs.existsSync(report)) {
+                    core.info(messages_1.messagesFormatter.format(messages_1.messages.found_xml_report, report));
                     return report;
                 }
             }
         };
         // with absolute path
         if (fs.existsSync(report)) {
+            core.info(messages_1.messagesFormatter.format(messages_1.messages.try_to_find_xml_report_with_absolute_path, report));
             return getReportPath(report);
             // with relative path
         }
         else {
+            core.info(messages_1.messagesFormatter.format(messages_1.messages.try_to_find_xml_report_with_relative_path, workingDir, report));
             report = pt.join(workingDir, report);
             return getReportPath(report);
         }
@@ -198,7 +210,7 @@ class AnalysisRunner {
         return undefined;
     }
 }
-exports.AnalysisRunner = AnalysisRunner;
+exports.TestsRunner = TestsRunner;
 //# sourceMappingURL=runner.js.map
 
 /***/ }),
@@ -39756,19 +39768,19 @@ async function run() {
             report: core.getInput("report", { required: false }),
             reportFormat: core.getInput("reportFormat", { required: false }),
             environment: core.getInput("environment", { required: false }),
-            additionalParams: core.getInput("additionalParams", { required: false }),
-            convertReportToXunit: core.getBooleanInput("convertReportToXunit", { required: false }),
-            javaRootPath: core.getInput("javaRootPath", { required: false })
+            convertReportToXUnit: core.getBooleanInput("convertReportToXUnit", { required: false }),
+            javaRootPath: core.getInput("javaRootPath", { required: false }),
+            additionalParams: core.getInput("additionalParams", { required: false })
         };
         core.info(messages_1.messagesFormatter.format(messages_1.messages.run_started, runOptions.workingDir));
-        const theRunner = new runner.AnalysisRunner();
-        let outcome = await theRunner.runSOATest(runOptions);
+        const theRunner = new runner.TestsRunner();
+        let outcome = await theRunner.runSOAtest(runOptions);
         if (outcome.exitCode != 0) {
             core.setFailed(messages_1.messagesFormatter.format(messages_1.messages.failed_run_non_zero, outcome.exitCode));
             return;
         }
         core.info(messages_1.messagesFormatter.format(messages_1.messages.exit_code, outcome.exitCode));
-        if (runOptions.convertReportToXunit) {
+        if (runOptions.convertReportToXUnit) {
             outcome = await theRunner.convertReportToXUnit(runOptions);
         }
         if (outcome.exitCode != 0) {
@@ -39783,6 +39795,9 @@ async function run() {
         }
         else if (typeof error === 'string' || error instanceof String) {
             core.setFailed(error.toString());
+        }
+        else {
+            core.setFailed(`Unknown error: ${error}`);
         }
     }
 }

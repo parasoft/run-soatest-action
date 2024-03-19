@@ -17,14 +17,14 @@
       required: false
       default: 'user://Example Configuration'
     resource:
-      description: 'The path to the test suite(s) relative to the workspace.'
+      description: 'Relative path(s) to the test suite(s) within the workspace.'
       required: false
       default: 'TestAssets'
     settings:
       description: 'Setting file used to configure execution preferences.'
       required: false
     report:
-      description: 'The path to output folder or a XML file for the test execution reports.'
+      description: 'The path to output folder or a file for the test execution reports.'
       required: false
       default: 'reports'
     reportFormat:
@@ -34,15 +34,15 @@
     environment:
       description: 'Name of the SOAtest environment to use for executing the tests.'
       required: false
-    additionalParams:
-      description: 'Additional parameters for the soatestcli executable.'
-      required: false
-    convertReportToXunit:
-      description: 'Convert the SOAtest report to xUnit format.'
+    convertReportToXUnit:
+      description: 'Enables the conversion of the SOAtest report into the xUnit format.'
       required: false
       default: true
     javaRootPath:
       description: 'Absolute location of the root path of Java installation. When found at the specified location, Java optimizes the efficiency of report processing. Otherwise, report processing will be significantly slower and may encounter memory issues when handling large reports.'
+      required: false
+    additionalParams:
+      description: 'Additional parameters for the soatestcli executable.'
       required: false
   runs:
     using: node16

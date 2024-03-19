@@ -13,22 +13,22 @@ export async function run() {
             report: core.getInput("report", { required: false }),
             reportFormat: core.getInput("reportFormat", { required: false }),
             environment: core.getInput("environment", { required: false }),
-            additionalParams: core.getInput("additionalParams", { required: false }),
-            convertReportToXunit: core.getBooleanInput("convertReportToXunit", { required: false }),
-            javaRootPath: core.getInput("javaRootPath", { required: false })
+            convertReportToXUnit: core.getBooleanInput("convertReportToXUnit", { required: false }),
+            javaRootPath: core.getInput("javaRootPath", { required: false }),
+            additionalParams: core.getInput("additionalParams", { required: false })
         };
 
         core.info(messagesFormatter.format(messages.run_started, runOptions.workingDir));
 
-        const theRunner = new runner.AnalysisRunner();
-        let outcome = await theRunner.runSOATest(runOptions);
+        const theRunner = new runner.TestsRunner();
+        let outcome = await theRunner.runSOAtest(runOptions);
 
         if (outcome.exitCode != 0) {
             core.setFailed(messagesFormatter.format(messages.failed_run_non_zero, outcome.exitCode));
             return;
         }
         core.info(messagesFormatter.format(messages.exit_code, outcome.exitCode));
-        if (runOptions.convertReportToXunit) {
+        if (runOptions.convertReportToXUnit) {
             outcome = await theRunner.convertReportToXUnit(runOptions);
         }
         if (outcome.exitCode != 0) {
@@ -41,6 +41,8 @@ export async function run() {
             core.setFailed(error.message);
         } else if (typeof error === 'string' || error instanceof String){
             core.setFailed(error.toString());
+        } else {
+            core.setFailed(`Unknown error: ${error}`);
         }
     }
 }

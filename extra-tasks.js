@@ -17,7 +17,7 @@ function mergeLicenses() {
     const file2Content = fs.readFileSync(file2Path, 'utf8');
 
     if (file1Content.indexOf(file2Content) !== -1) {
-        console.log(`Skipped merging, the content of the ${file1Path} file contains the content of ${file2Path} file already.`);
+        console.log(`Skipped merging; ${file1Path} already contains the content of ${file2Path}.`);
         return;
     }
     const mergedContent = file1Content + '\n' + file2Content;
@@ -27,55 +27,55 @@ function mergeLicenses() {
 }
 
 /**
- * Processes the soatest-xunit.sef.json file by replacing its properties, some the value of properties contain sensitive information 
- * and others change in real-time, affecting the tracking of git.
+ * Processes the soatest-xunit.sef.json file by replacing its properties. Some of the property values contain sensitive information 
+ * and other changes in real-time, affecting the tracking of Git.
  */
 function processSOAtestXUnitSelJsonFile() {
     console.log('Processing the soatest-xunit.sef.json file ...');
-    // Must to be updated when the xsl file is updated, the value is used to check if the xsl file was changed.
+
+    // Must be updated when the .xsl file is updated; the value is used to check if the .xsl file has changed.
     const expectedHashOfXslFile = '4d3a0c707bee683bcedf605952a6218ec9c0821e';
-    // Must to be updated when the xsl file is updated, the value is the checksum of .sef.json file.
-    const replacedΣ = '5a38157e';
-    // Optional to be updated when the xsl file is updated
-    const replacedBuildDateTime = '2024-03-19T15:47:19.299+08:00';
-    // No need to be updated when the xsl file is updated
-    const replacedBase = './soatest-xunit.xsl';
-    // No need to be updated when the xsl file is updated
-    const replacedBaseUri = './soatest-xunit.xsl';
+    // Must be updated when the .xsl file is updated; the value is the checksum of .sef.json file.
+    const ΣPlaceHolder = '5a38157e';
+    // Optional to update when the .xsl file is updated
+    const buildDateTimePlaceholder = '2024-03-19T15:47:19.299+08:00';
+
+    const basePlaceholder = './soatest-xunit.xsl';
+    const baseUriPlaceholder = './soatest-xunit.xsl';
 
     const xslFilePath = path.join(__dirname, 'dist', 'soatest-xunit.xsl');
     const realHash = getFileHash(xslFilePath);
 
-    const selJsonFilePath = path.join(__dirname, 'dist', 'soatest-xunit.sef.json');
-    const selJsonContent = fs.readFileSync(selJsonFilePath, 'utf8');
-    const selJson = JSON.parse(selJsonContent);
+    const sefJsonFilePath = path.join(__dirname, 'dist', 'soatest-xunit.sef.json');
+    const sefJsonContent = fs.readFileSync(sefJsonFilePath, 'utf8');
+    const sefJson = JSON.parse(sefJsonContent);
 
     if (expectedHashOfXslFile != realHash) {
         throw new Error(
-            `The file ${xslFilePath} was changed, and the hash of it does not match the expected hash.
-             You must update the current expectedHashOfXslFile value according to the updated soatest-xunit.xsl file.
-               Expected hash: ${expectedHashOfXslFile}
-               Real hash: ${realHash}
-             You must update replacedΣ values according to the generated soatest-xunit.sef.json file as well.
-               Real Σ: This value can be found in the error messages after using SaxonJS to transform the report manually using properties value replaced .sef.json file, the error messages contains the real Σ value.
-                       e.g. the real Σ value is d06b1608 when error message is like: Invalid checksum in SEF f06b1608 != d06b1608; code:SXJS0006.
-             These variables exist in the processSOAtestXUnitSelJsonFile function in the extra-tasks.js file.`
+            `The file ${xslFilePath} has been changed, and its hash does not match the expected hash.
+             You must update the value of 'expectedHashOfXslFile' based on the updated soatest-xunit.xsl file.
+                Expected hash: ${expectedHashOfXslFile}
+                Actual hash: ${realHash}
+             You must update the values of 'replacedΣ' according to the generated soatest-xunit.sef.json file.
+                Actual Σ: This value can be found in the error messages after manually transforming the report using SaxonJS with the .sef.json file, which has the properties' values replaced. The error messages contain the actual Σ value.
+                    e.g. the actual Σ value is d06b1608 when error message is like: Invalid checksum in SEF f06b1608 != d06b1608; code:SXJS0006.
+             These variables are located in the 'processSOAtestXUnitSelJsonFile' function in the 'extra-tasks.js' file.`
         );
     }
 
-    console.log(`Replacing the value of the properties in ${selJsonFilePath} ...`);
-    console.log(`  buildDateTime value: ${selJson.buildDateTime} to ${replacedBuildDateTime}`);
-    replacePropertyValue(selJson, 'buildDateTime', replacedBuildDateTime);
-    console.log(`  Σ value: ${selJson.Σ} to ${replacedΣ}`);
-    replacePropertyValue(selJson, 'Σ', replacedΣ);
-    console.log(`  All base values to ${replacedBase}`);
-    replacePropertyValue(selJson, 'base', replacedBase);
-    console.log(`  All baseUri values to ${replacedBaseUri}`);
-    replacePropertyValue(selJson, 'baseUri', replacedBaseUri);
+    console.log(`Replacing the value of the properties in ${sefJsonFilePath} ...`);
+    console.log(`  buildDateTime value: ${sefJson.buildDateTime} to ${buildDateTimePlaceholder}`);
+    replacePropertyValue(sefJson, 'buildDateTime', buildDateTimePlaceholder);
+    console.log(`  Σ value: ${sefJson.Σ} to ${ΣPlaceHolder}`);
+    replacePropertyValue(sefJson, 'Σ', ΣPlaceHolder);
+    console.log(`  All base values to ${basePlaceholder}`);
+    replacePropertyValue(sefJson, 'base', basePlaceholder);
+    console.log(`  All baseUri values to ${baseUriPlaceholder}`);
+    replacePropertyValue(sefJson, 'baseUri', baseUriPlaceholder);
 
-    fs.writeFileSync(selJsonFilePath, JSON.stringify(selJson, null, 2));
+    fs.writeFileSync(sefJsonFilePath, JSON.stringify(sefJson, null, 2));
 
-    console.log('Processed the soatest-xunit.sef.json file successfully.');
+    console.log('Successfully processed the soatest-xunit.sef.json file.');
 }
 
 /**

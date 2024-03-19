@@ -2,3 +2,5 @@
 node_modules/
 lib/
 eslint/
+coverage/
+.nyc_output/

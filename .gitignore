@@ -4,3 +4,5 @@ lib/
 eslint/
 coverage/
 .nyc_output/
+# mocha junit report
+test-results.xml

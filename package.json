@@ -9,7 +9,7 @@
     "lint": "npx eslint . --ext .ts -f checkstyle -o eslint/eslint-report.xml || true",
     "test": "nyc mocha",
     "package": "ncc build --license licenses.txt",
-    "clean": "rimraf ./dist ./lib ./eslint ./coverage ./.nyc_output",
+    "clean": "rimraf ./dist ./lib ./eslint ./coverage ./.nyc_output test-results.xml",
     "all": "npm run clean && npm run compile && npm run lint && npm run test && npm run package"
   },
   "nyc": {
@@ -36,6 +36,7 @@
     "@vercel/ncc": "^0.38.1",
     "eslint": "^8.57.0",
     "mocha": "^10.3.0",
+    "mocha-junit-reporter": "^2.2.1",
     "nyc": "^15.1.0",
     "rimraf": "^5.0.5",
     "sinon": "^17.0.1",

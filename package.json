@@ -10,7 +10,7 @@
     "test": "nyc mocha",
     "copy-files": "copyfiles --flat ./src/messages/*.json ./dist/messages && copyfiles --flat ./res/*.xsl ./dist && copyfiles --up 1 ./libs/SaxonHE12-2J/**/* ./dist",
     "package": "ncc build --license licenses.txt && npm run copy-files",
-    "clean": "rimraf ./dist ./lib ./eslint ./coverage ./.nyc_output",
+    "clean": "rimraf ./dist ./lib ./eslint ./coverage ./.nyc_output test-results.xml",
     "all": "npm run clean && npm run compile && npm run lint && npm run test && npm run package && npm run compile-xsl && npm run extra-tasks",
     "extra-tasks": "node ./scripts/extra-tasks.js",
     "compile-xsl": "node node_modules/xslt3/xslt3.js -t -xsl:./dist/soatest-xunit.xsl -export:./dist/soatest-xunit.sef.json -nogo"
@@ -45,6 +45,7 @@
     "@vercel/ncc": "^0.38.1",
     "eslint": "^8.57.0",
     "mocha": "^10.3.0",
+    "mocha-junit-reporter": "^2.2.1",
     "nyc": "^15.1.0",
     "rimraf": "^5.0.5",
     "typescript": "^5.4.2",

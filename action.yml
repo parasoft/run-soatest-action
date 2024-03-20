@@ -1,9 +1,49 @@
-  name: 'Publishing Parasoft SOAtest results'
+  name: 'Run Parasoft SOAtest'
   description: 'A GitHub Action for running functional tests with Parasoft SOAtest and reviewing results directly in GitHub.'
   author: 'Parasoft'
   branding:
     icon: 'aperture'
     color: 'blue'
+  inputs:
+    installDir:
+      description: 'Installation folder of Parasoft SOAtest. If not specified, the soatestcli executable must be added to PATH.'
+      required: false
+    workingDir:
+      description: 'Working directory for running SOAtest.'
+      required: false
+      default: ${{ github.workspace }}
+    testConfig:
+      description: 'Test configuration to be used for test execution.'
+      required: false
+      default: 'user://Example Configuration'
+    resource:
+      description: 'Relative path(s) to the test suite(s) within the workspace.'
+      required: false
+      default: 'TestAssets'
+    settings:
+      description: 'Setting file used to configure execution preferences.'
+      required: false
+    report:
+      description: 'The path to output folder or a file for the test execution report.'
+      required: false
+      default: 'reports'
+    reportFormat:
+      description: 'Format of reports from test execution.'
+      required: false
+      default: 'xml,html'
+    environment:
+      description: 'Name of the SOAtest environment to use for executing the tests.'
+      required: false
+    convertReportToXUnit:
+      description: 'Enables the conversion of the SOAtest report into the xUnit format.'
+      required: false
+      default: true
+    javaRootPath:
+      description: 'Absolute location of the root path of Java installation. When found at the specified location, Java optimizes the efficiency of report processing. Otherwise, report processing will be significantly slower and may encounter memory issues when handling large reports.'
+      required: false
+    additionalParams:
+      description: 'Additional parameters for the soatestcli executable.'
+      required: false
   runs:
-    using: node16
+    using: node20
     main: 'dist/index.js'

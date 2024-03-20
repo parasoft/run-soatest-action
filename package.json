@@ -8,9 +8,12 @@
     "watch": "npx tsc -watch -p ./",
     "lint": "npx eslint . --ext .ts -f checkstyle -o eslint/eslint-report.xml || true",
     "test": "nyc mocha",
-    "package": "ncc build --license licenses.txt",
-    "clean": "rimraf ./dist ./lib ./eslint ./coverage ./.nyc_output",
-    "all": "npm run clean && npm run compile && npm run lint && npm run test && npm run package"
+    "copy-files": "copyfiles --flat ./src/messages/*.json ./dist/messages && copyfiles --flat ./res/*.xsl ./dist && copyfiles --up 1 ./libs/SaxonHE12-2J/**/* ./dist",
+    "package": "ncc build --license licenses.txt && npm run copy-files",
+    "clean": "rimraf ./dist ./lib ./eslint ./coverage ./.nyc_output test-results.xml",
+    "all": "npm run clean && npm run compile && npm run lint && npm run test && npm run package && npm run compile-xsl && npm run extra-tasks",
+    "extra-tasks": "node ./scripts/extra-tasks.js",
+    "compile-xsl": "node node_modules/xslt3/xslt3.js -t -xsl:./dist/soatest-xunit.xsl -export:./dist/soatest-xunit.sef.json -nogo"
   },
   "nyc": {
     "reporter": [
@@ -28,7 +31,13 @@
     "url": "https://github.com/parasoft/run-soatest-action/issues"
   },
   "homepage": "https://github.com/parasoft/run-soatest-action#readme",
+  "dependencies": {
+    "@actions/core": "^1.10.1",
+    "saxon-js": "^2.6.0",
+    "string-format": "2.0.0"
+  },
   "devDependencies": {
+    "@types/node": "^16.18.11",
     "@types/mocha": "^10.0.6",
     "@types/sinon": "^17.0.3",
     "@typescript-eslint/eslint-plugin": "^7.2.0",
@@ -36,10 +45,13 @@
     "@vercel/ncc": "^0.38.1",
     "eslint": "^8.57.0",
     "mocha": "^10.3.0",
+    "mocha-junit-reporter": "^2.2.1",
     "nyc": "^15.1.0",
     "rimraf": "^5.0.5",
+    "typescript": "^5.4.2",
+    "copyfiles": "^2.4.1",
+    "xslt3": "^2.6.0",
     "sinon": "^17.0.1",
-    "ts-node": "^10.9.2",
-    "typescript": "^5.4.2"
+    "ts-node": "^10.9.2"
   }
 }

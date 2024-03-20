@@ -34,7 +34,7 @@ function processSOAtestXUnitSelJsonFile() {
     console.log('Processing the soatest-xunit.sef.json file ...');
 
     // Must be updated when the .xsl file is updated; the value is used to check if the .xsl file has changed.
-    const expectedHashOfXslFile = '4d3a0c707bee683bcedf605952a6218ec9c0821e';
+    const expectedHashOfXslFile = 'bd28c8f07a48b04af1e2c181bca31630f6caa3b7';
     // Must be updated when the .xsl file is updated; the value is the checksum of .sef.json file.
     const ΣPlaceHolder = '5a38157e';
     // Optional to update when the .xsl file is updated

@@ -150,8 +150,8 @@ class TestsRunner {
             }
         };
         // with absolute path
-        if (fs.existsSync(report)) {
-            core.info(messages_1.messagesFormatter.format(messages_1.messages.find_xml_report, report));
+        if (pt.isAbsolute(report)) {
+            core.info(messages_1.messages.find_xml_report);
             return getReportPath(report);
             // with relative path
         }

@@ -7,10 +7,16 @@
     "compile": "npx tsc -p ./",
     "watch": "npx tsc -watch -p ./",
     "lint": "npx eslint . --ext .ts -f checkstyle -o eslint/eslint-report.xml || true",
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "nyc mocha",
     "package": "ncc build --license licenses.txt",
-    "clean": "rimraf ./dist ./lib ./eslint",
-    "all": "npm run clean && npm run compile && npm run lint && npm run package"
+    "clean": "rimraf ./dist ./lib ./eslint ./coverage ./.nyc_output",
+    "all": "npm run clean && npm run compile && npm run lint && npm run test && npm run package"
+  },
+  "nyc": {
+    "reporter": [
+      "html",
+      "cobertura"
+    ]
   },
   "repository": {
     "type": "git",
@@ -23,11 +29,17 @@
   },
   "homepage": "https://github.com/parasoft/run-soatest-action#readme",
   "devDependencies": {
+    "@types/mocha": "^10.0.6",
+    "@types/sinon": "^17.0.3",
     "@typescript-eslint/eslint-plugin": "^7.2.0",
     "@typescript-eslint/parser": "^7.2.0",
     "@vercel/ncc": "^0.38.1",
     "eslint": "^8.57.0",
+    "mocha": "^10.3.0",
+    "nyc": "^15.1.0",
     "rimraf": "^5.0.5",
+    "sinon": "^17.0.1",
+    "ts-node": "^10.9.2",
     "typescript": "^5.4.2"
   }
 }

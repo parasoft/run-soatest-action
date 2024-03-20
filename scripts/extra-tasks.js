@@ -9,8 +9,8 @@ const crypto = require('crypto');
 function mergeLicenses() {
     console.log('Merging the content of the licenses.txt files ...');
 
-    const file1Path = path.join(__dirname, 'dist', 'licenses.txt');
-    const file2Path = path.join(__dirname, 'libs', 'licenses.txt');
+    const file1Path = path.join(__dirname, '..', 'dist', 'licenses.txt');
+    const file2Path = path.join(__dirname, '..', 'libs', 'licenses.txt');
     const mergedFilePath = file1Path;
 
     const file1Content = fs.readFileSync(file1Path, 'utf8');
@@ -43,10 +43,10 @@ function processSOAtestXUnitSelJsonFile() {
     const basePlaceholder = './soatest-xunit.xsl';
     const baseUriPlaceholder = './soatest-xunit.xsl';
 
-    const xslFilePath = path.join(__dirname, 'dist', 'soatest-xunit.xsl');
+    const xslFilePath = path.join(__dirname, '..', 'dist', 'soatest-xunit.xsl');
     const realHash = getFileHash(xslFilePath);
 
-    const sefJsonFilePath = path.join(__dirname, 'dist', 'soatest-xunit.sef.json');
+    const sefJsonFilePath = path.join(__dirname,'..', 'dist', 'soatest-xunit.sef.json');
     const sefJsonContent = fs.readFileSync(sefJsonFilePath, 'utf8');
     const sefJson = JSON.parse(sefJsonContent);
 

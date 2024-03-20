@@ -12,7 +12,7 @@
     "package": "ncc build --license licenses.txt && npm run copy-files",
     "clean": "rimraf ./dist ./lib ./eslint",
     "all": "npm run clean && npm run compile && npm run lint && npm run package && npm run compile-xsl && npm run extra-tasks",
-    "extra-tasks": "node ./extra-tasks.js",
+    "extra-tasks": "node ./scripts/extra-tasks.js",
     "compile-xsl": "node node_modules/xslt3/xslt3.js -t -xsl:./dist/soatest-xunit.xsl -export:./dist/soatest-xunit.sef.json -nogo"
   },
   "repository": {

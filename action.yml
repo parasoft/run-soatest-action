@@ -24,7 +24,7 @@
       description: 'Setting file used to configure execution preferences.'
       required: false
     report:
-      description: 'The path to output folder or a file for the test execution reports.'
+      description: 'The path to output folder or a file for the test execution report.'
       required: false
       default: 'reports'
     reportFormat:
@@ -45,5 +45,5 @@
       description: 'Additional parameters for the soatestcli executable.'
       required: false
   runs:
-    using: node16
+    using: node20
     main: 'dist/index.js'

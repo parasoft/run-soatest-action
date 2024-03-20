@@ -174,11 +174,11 @@ export class TestsRunner {
 
         // with absolute path
         if (fs.existsSync(report)) {
-            core.info(messagesFormatter.format(messages.try_to_find_xml_report_with_absolute_path, report));
+            core.info(messagesFormatter.format(messages.find_xml_report, report));
             return getReportPath(report);
         // with relative path
         } else {
-            core.info(messagesFormatter.format(messages.try_to_find_xml_report_with_relative_path, workingDir, report));
+            core.info(messagesFormatter.format(messages.find_xml_report_in_working_directory , workingDir, report));
             report = pt.join(workingDir, report);
             return getReportPath(report);
         }

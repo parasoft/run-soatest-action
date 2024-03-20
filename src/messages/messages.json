@@ -1,0 +1,17 @@
+{
+    "run_started": "Running SOAtest in {0}...",
+    "run_failed": "Run failed",
+    "exit_code": "SOAtest run finished with code {0}",
+    "failed_run_non_zero": "SOAtest run failed with a non-zero exit code: {0}",
+    "wrk_dir_not_exist": "Working directory does not exist: {0}",
+    "found_xml_report": "Found Parasoft SOAtest XML report file: {0}",
+    "try_to_find_xml_report_in_folder": "Trying to find report.xml file under directory path: {0}...",
+    "find_xml_report": "Finding Parasoft SOAtest XML report...",
+    "find_xml_report_in_working_directory": "Finding Parasoft SOAtest XML report in working directory {0}...",
+    "soatest_report_not_found": "Parasoft SOAtest XML report not found at the specified location: {0}",
+    "converting_soatest_report_to_xunit": "Converting Parasoft SOAtest report: {0} to xUnit report...",
+    "converted_xunit_report": "XUnit report generated successfully: {0}",
+    "use_nodejs_to_convert_report": "Converting the report using Node.js...",
+    "using_java_to_convert_report": "Converting the report using Java located at: {0}...",
+    "failed_convert_report": "Report conversion failed with a non-zero exit code: {0}"
+}

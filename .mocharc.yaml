@@ -1,5 +1,5 @@
 extension:
   - ts
 spec: "tests/**/*.spec.ts"
-loader: ts-node/esm
+require: ts-node/register
 reporter: mocha-junit-reporter

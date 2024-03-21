@@ -1,5 +1,6 @@
 import * as main from "../src/main";
 import * as assert from "assert";
+import { describe, it } from "mocha";
 
 describe('run-soatest-action/main', () => {
     it('add', () => {
@@ -11,6 +12,5 @@ describe('run-soatest-action/main', () => {
         * - nyc is used for code coverage
         */
         assert.strictEqual(main.add(1, 2), 3);
-
     });
 });

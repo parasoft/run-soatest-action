@@ -43,6 +43,7 @@
     "@typescript-eslint/eslint-plugin": "^7.2.0",
     "@typescript-eslint/parser": "^7.2.0",
     "@vercel/ncc": "^0.38.1",
+    "@types/string-format": "^2.0.3",
     "eslint": "^8.57.0",
     "mocha": "^10.3.0",
     "mocha-junit-reporter": "^2.2.1",

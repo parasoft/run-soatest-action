@@ -1,6 +1,6 @@
 import * as fs from 'fs';
 import * as pt from 'path';
-import format = require('string-format');
+import * as format from 'string-format';
 
 interface ISerializable<T> {
     deserialize(jsonPath: string): T;

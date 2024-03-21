@@ -55,7 +55,7 @@ export class TestsRunner {
 
         const runPromise = new Promise<RunDetails>((resolve, reject) => {
             const cliEnv = this.createParasoftEnvironment();
-            const cliProcess = cp.spawn(`${commandLine}`, { cwd: runOptions.workingDir, env: cliEnv, shell: true, windowsHide: true });
+            const cliProcess = cp.spawn(`${commandLine}`, { cwd: process.env.GITHUB_WORKSPACE, env: cliEnv, shell: true, windowsHide: true });
             this.handleCliProcess(cliProcess, resolve, reject);
         });
 

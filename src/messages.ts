@@ -22,6 +22,10 @@ class Messages implements ISerializable<Messages> {
     use_nodejs_to_convert_report!: string;
     using_java_to_convert_report!: string;
     failed_convert_report!: string;
+    soatest_install_dir_not_found!: string;
+    java_not_found_in_soatest_install_dir!: string;
+    found_java_at!: string;
+    find_java_in_soatest_install_dir!: string;
 
     deserialize(jsonPath: string) : Messages {
         const buf = fs.readFileSync(jsonPath);

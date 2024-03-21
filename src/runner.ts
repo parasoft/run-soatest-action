@@ -4,6 +4,7 @@ import * as fs from 'fs';
 import * as pt from 'path';
 import * as core from "@actions/core";
 import * as SaxonJS from 'saxon-js';
+import * as which from 'which';
 import { messages, messagesFormatter } from './messages';
 
 export interface RunDetails {
@@ -34,9 +35,6 @@ export interface RunOptions {
 
     /* Specify a .env file. */
     environment: string;
-
-    /* Root path of Java installation. */
-    javaRootPath: string;
 
     /* Convert Parasoft SOAtest report to XUnit format. */
     convertReportToXUnit: boolean; 
@@ -72,7 +70,7 @@ export class TestsRunner {
         
         core.info(messagesFormatter.format(messages.converting_soatest_report_to_xunit, parasoftXmlReportPath));
         let exitCode = 0;
-        const javaPath = this.getJavaPath(runOptions.javaRootPath);
+        const javaPath = this.getSOAtestJavaPath(runOptions.installDir);
         if (javaPath) {
             exitCode = (await this.convertReportWithJava(javaPath, parasoftXmlReportPath, xunitPath, runOptions.workingDir)).exitCode;
         } else {
@@ -228,15 +226,54 @@ export class TestsRunner {
         cliProcess.on("error", (err) => { reject(err); });
     }
 
-    private getJavaPath(javaRootPath: string): string | undefined {
-        if (!javaRootPath) {
+    private getSOAtestJavaPath(installDir: string): string | undefined {
+        let javaFilePath;
+        if (installDir && fs.existsSync(installDir)) {
+            javaFilePath = this.doGetSOAtestJavaPath(installDir);
+        } else {
+            try {
+                const soatestcliPath = which.sync('soatestcli');
+                installDir = soatestcliPath.substring(0, soatestcliPath.lastIndexOf('soatestcli') - 1);
+                javaFilePath = this.doGetSOAtestJavaPath(installDir);
+            } catch (error) {
+                core.warning(messages.soatest_install_dir_not_found);
+                javaFilePath = undefined;
+            }
+        }
+
+        if (!javaFilePath) {
+            core.warning(messages.java_not_found_in_soatest_install_dir);
+        } else {
+            core.info(messagesFormatter.format(messages.found_java_at, javaFilePath));
+        }
+        return javaFilePath;
+    }
+
+    private doGetSOAtestJavaPath(installDir: string): string | undefined {
+        core.info(messagesFormatter.format(messages.find_java_in_soatest_install_dir, installDir));
+
+        const pluginsPath = pt.join(installDir, 'plugins');
+        if (!fs.existsSync(pluginsPath)) {
             return undefined;
         }
-        const javaFileName = os.platform() == 'win32' ? "java.exe" : "java";
-        const javaFilePath = pt.join(javaRootPath, "bin", javaFileName);
-        if (fs.existsSync(javaFilePath)) {
-            return javaFilePath;
+
+        const pluginPaths = fs.readdirSync(pluginsPath, { withFileTypes: true })
+            .filter(dirent => dirent.isDirectory() && dirent.name.startsWith('com.parasoft.ptest.jdk.eclipse.core.web.'))
+            .map(dirent => pt.join(pluginsPath, dirent.name));
+
+        if (pluginPaths.length != 1) {
+            return undefined;
         }
-        return undefined;
+
+        const jdkRootPath = pt.join(pluginPaths[0], 'jdk');
+
+        const javaFileName = os.platform() == 'win32' ? "java.exe" : "java";
+        const javaFilePath = pt.join(jdkRootPath, "bin", javaFileName);
+
+        if (!fs.existsSync(javaFilePath)) {
+            return undefined;
+        }
+
+        return javaFilePath;
     }
 }

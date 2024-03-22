@@ -4,7 +4,7 @@
     "exit_code": "SOAtest run finished with code {0}",
     "failed_run_non_zero": "SOAtest run failed with a non-zero exit code: {0}",
     "wrk_dir_not_exist": "Working directory does not exist: {0}",
-    "found_xml_report": "Found Parasoft SOAtest XML report file: {0}",
+    "found_latest_xml_report": "Found latest Parasoft SOAtest XML report file: {0}",
     "try_to_find_xml_report_in_folder": "Trying to find report.xml file under directory path: {0}...",
     "find_xml_report": "Finding Parasoft SOAtest XML report...",
     "find_xml_report_in_working_directory": "Finding Parasoft SOAtest XML report in working directory {0}...",

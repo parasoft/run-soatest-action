@@ -147,41 +147,44 @@ export class TestsRunner {
     }
 
     private findParasoftXmlReport(report: string, workingDir: string) : string | undefined {
-        const getReportPath = function (report: string) : string | undefined {
-            if (!fs.existsSync(report)) {
-                return undefined;
-            }
-
-            const stats = fs.statSync(report);
-            if (stats.isFile()) {
-                report = report.replace(report.substring(report.lastIndexOf('.')), '.xml');
-                if (fs.existsSync(report)) {
-                    core.info(messagesFormatter.format(messages.found_xml_report, report));
-                    return report;
-                }
-                return undefined;
-            }
-
-            if (stats.isDirectory()) {
-                core.info(messagesFormatter.format(messages.try_to_find_xml_report_in_folder, report));
-                report = pt.join(report, 'report.xml');
-                if (fs.existsSync(report)) {
-                    core.info(messagesFormatter.format(messages.found_xml_report, report));
-                    return report;
-                }
-            }
-        };
-
-        // with absolute path
         if (pt.isAbsolute(report)) {
+            // with absolute path
             core.info(messages.find_xml_report);
-            return getReportPath(report);
-        // with relative path
         } else {
+            // with relative path
             core.info(messagesFormatter.format(messages.find_xml_report_in_working_directory , workingDir, report));
             report = pt.join(workingDir, report);
-            return getReportPath(report);
         }
+
+        if (!fs.existsSync(report)) {
+            return undefined;
+        }
+
+        let reportDir: string = '';
+        let reportName: string = '';
+        const stats = fs.statSync(report);
+
+        if (stats.isFile()) {
+            // xml report will exist when -report param is report.xml or report.html
+            reportDir = pt.dirname(report);
+            reportName = pt.basename(report, pt.extname(report));
+        }
+
+        if (stats.isDirectory()) {
+            reportDir = report;
+            reportName = 'report';
+            core.info(messagesFormatter.format(messages.try_to_find_xml_report_in_folder, report));
+        }
+
+        const reportFiles = fs.readdirSync(reportDir).filter(file => file.includes(reportName) && file.endsWith('.xml'));
+        if (reportFiles.length != 0) {
+            // add core.info here, log message tell user will found the latest xml report
+            report = pt.join(reportDir, reportFiles.sort((a, b) => fs.statSync(pt.join(reportDir, b)).mtime.getTime() - fs.statSync(pt.join(reportDir, a)).mtime.getTime())[0]);
+            core.info(messagesFormatter.format(messages.found_latest_xml_report, report));
+            return report;
+        }
+        // No xml report found
+        return undefined;
     }
 
     private async convertReportWithJava(javaPath: string, sourcePath: string, outPath: string, defaultWorkingDirectory: string) : Promise<RunDetails>

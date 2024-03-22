@@ -17,6 +17,9 @@ export interface RunOptions {
     /* Working directory for running SOAtest. */
     workingDir: string;
 
+    /* Specify a path of the SOAtest workspace directory. */
+    soatestWorkspace: string;
+
     /* Test configuration to be used for test execution. */
     testConfig: string;
 
@@ -39,7 +42,7 @@ export interface RunOptions {
     javaRootPath: string;
 
     /* Convert Parasoft SOAtest report to XUnit format. */
-    convertReportToXUnit: boolean; 
+    convertReportToXUnit: boolean;
 
     /* Additional parameters for soatestcli executable. */
     additionalParams: string;
@@ -69,7 +72,7 @@ export class TestsRunner {
         }
 
         const xunitPath = parasoftXmlReportPath.substring(0, parasoftXmlReportPath.lastIndexOf('.xml')) + '-xunit.xml';
-        
+
         core.info(messagesFormatter.format(messages.converting_soatest_report_to_xunit, parasoftXmlReportPath));
         let exitCode = 0;
         const javaPath = this.getJavaPath(runOptions.javaRootPath);
@@ -94,8 +97,8 @@ export class TestsRunner {
 
         let commandLine = soatestcli;
 
-        if (runOptions.workingDir) {
-            commandLine += ` -data "${runOptions.workingDir}"`;
+        if (runOptions.soatestWorkspace) {
+            commandLine += ` -data "${runOptions.soatestWorkspace}"`;
         }
 
         if (runOptions.testConfig) {

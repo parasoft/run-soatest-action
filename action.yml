@@ -12,12 +12,16 @@
       description: 'Working directory for running SOAtest.'
       required: false
       default: ${{ github.workspace }}
+    soatestWorkspace:
+      description: 'The path of the SOAtest workspace directory.'
+      required: false
+      default: ${{ github.workspace }}
     testConfig:
       description: 'Test configuration to be used for test execution.'
       required: false
       default: 'user://Example Configuration'
     resource:
-      description: 'Relative path(s) to the test suite(s) within the workspace.'
+      description: 'Relative path(s) to the test suite(s) within the SOAtest workspace.'
       required: false
       default: 'TestAssets'
     settings:

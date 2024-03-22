@@ -7,6 +7,7 @@ export async function run() {
         const runOptions: runner.RunOptions = {
             installDir: core.getInput("installDir", { required: false }),
             workingDir: core.getInput("workingDir", { required: false }),
+            soatestWorkspace: core.getInput("soatestWorkspace", { required: false }),
             testConfig: core.getInput("testConfig", { required: false }),
             resource: core.getInput("resource", { required: false }),
             settings: core.getInput("settings", { required: false }),

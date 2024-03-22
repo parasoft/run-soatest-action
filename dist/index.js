@@ -45,21 +45,28 @@ const core = __nccwpck_require__(2186);
 const SaxonJS = __nccwpck_require__(5805);
 const messages_1 = __nccwpck_require__(9112);
 class TestsRunner {
+    constructor() {
+        this.workingDir = process.env.GITHUB_WORKSPACE + "";
+    }
     async runSOAtest(runOptions) {
-        if (!fs.existsSync(runOptions.workingDir)) {
-            return Promise.reject(messages_1.messagesFormatter.format(messages_1.messages.wrk_dir_not_exist, runOptions.workingDir));
+        if (!fs.existsSync(this.workingDir)) {
+            return Promise.reject(messages_1.messagesFormatter.format(messages_1.messages.work_dir_not_exist, this.workingDir));
+        }
+        core.info(messages_1.messagesFormatter.format(messages_1.messages.run_started, this.workingDir));
+        if (!fs.existsSync(runOptions.soatestWorkspace)) {
+            return Promise.reject(messages_1.messagesFormatter.format(messages_1.messages.soatest_workspace_dir_not_exist, runOptions.soatestWorkspace));
         }
         const commandLine = this.createSOAtestCommandLine(runOptions).trim();
         core.info(commandLine);
         const runPromise = new Promise((resolve, reject) => {
             const cliEnv = this.createParasoftEnvironment();
-            const cliProcess = cp.spawn(`${commandLine}`, { cwd: runOptions.workingDir, env: cliEnv, shell: true, windowsHide: true });
+            const cliProcess = cp.spawn(`${commandLine}`, { env: cliEnv, shell: true, windowsHide: true });
             this.handleCliProcess(cliProcess, resolve, reject);
         });
         return runPromise;
     }
     async convertReportToXUnit(runOptions) {
-        const parasoftXmlReportPath = this.findParasoftXmlReport(runOptions.report, runOptions.workingDir);
+        const parasoftXmlReportPath = this.findParasoftXmlReport(runOptions.report, this.workingDir);
         if (!parasoftXmlReportPath) {
             return Promise.reject(messages_1.messagesFormatter.format(messages_1.messages.soatest_report_not_found, runOptions.report));
         }
@@ -68,10 +75,10 @@ class TestsRunner {
         let exitCode = 0;
         const javaPath = this.getJavaPath(runOptions.javaRootPath);
         if (javaPath) {
-            exitCode = (await this.convertReportWithJava(javaPath, parasoftXmlReportPath, xunitPath, runOptions.workingDir)).exitCode;
+            exitCode = (await this.convertReportWithJava(javaPath, parasoftXmlReportPath, xunitPath, this.workingDir)).exitCode;
         }
         else {
-            this.convertReportWithNodeJs(parasoftXmlReportPath, xunitPath, runOptions.workingDir);
+            this.convertReportWithNodeJs(parasoftXmlReportPath, xunitPath, this.workingDir);
         }
         if (exitCode == 0) {
             core.info(messages_1.messagesFormatter.format(messages_1.messages.converted_xunit_report, xunitPath));
@@ -84,8 +91,8 @@ class TestsRunner {
             soatestcli = `"${pt.join(runOptions.installDir, soatestcli)}"`;
         }
         let commandLine = soatestcli;
-        if (runOptions.workingDir) {
-            commandLine += ` -data "${runOptions.workingDir}"`;
+        if (runOptions.soatestWorkspace) {
+            commandLine += ` -data "${runOptions.soatestWorkspace}"`;
         }
         if (runOptions.testConfig) {
             commandLine += ` -config "${runOptions.testConfig}"`;
@@ -39761,7 +39768,7 @@ async function run() {
     try {
         const runOptions = {
             installDir: core.getInput("installDir", { required: false }),
-            workingDir: core.getInput("workingDir", { required: false }),
+            soatestWorkspace: core.getInput("soatestWorkspace", { required: false }),
             testConfig: core.getInput("testConfig", { required: false }),
             resource: core.getInput("resource", { required: false }),
             settings: core.getInput("settings", { required: false }),
@@ -39772,7 +39779,6 @@ async function run() {
             javaRootPath: core.getInput("javaRootPath", { required: false }),
             additionalParams: core.getInput("additionalParams", { required: false })
         };
-        core.info(messages_1.messagesFormatter.format(messages_1.messages.run_started, runOptions.workingDir));
         const theRunner = new runner.TestsRunner();
         let outcome = await theRunner.runSOAtest(runOptions);
         if (outcome.exitCode != 0) {

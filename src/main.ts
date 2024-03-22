@@ -6,7 +6,7 @@ export async function run() {
     try {
         const runOptions: runner.RunOptions = {
             installDir: core.getInput("installDir", { required: false }),
-            workingDir: core.getInput("workingDir", { required: false }),
+            soatestWorkspace: core.getInput("soatestWorkspace", { required: false }),
             testConfig: core.getInput("testConfig", { required: false }),
             resource: core.getInput("resource", { required: false }),
             settings: core.getInput("settings", { required: false }),
@@ -17,8 +17,6 @@ export async function run() {
             javaRootPath: core.getInput("javaRootPath", { required: false }),
             additionalParams: core.getInput("additionalParams", { required: false })
         };
-
-        core.info(messagesFormatter.format(messages.run_started, runOptions.workingDir));
 
         const theRunner = new runner.TestsRunner();
         let outcome = await theRunner.runSOAtest(runOptions);

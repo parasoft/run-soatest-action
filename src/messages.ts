@@ -11,7 +11,8 @@ class Messages implements ISerializable<Messages> {
     run_failed!: string;
     exit_code!: string;
     failed_run_non_zero!: string;
-    wrk_dir_not_exist!: string;
+    work_dir_not_exist!: string;
+    soatest_workspace_dir_not_exist!: string;
     found_xml_report!: string;
     try_to_find_xml_report_in_folder!: string;
     find_xml_report!: string;

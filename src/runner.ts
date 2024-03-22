@@ -3,7 +3,6 @@ import * as os from 'os';
 import * as fs from 'fs';
 import * as pt from 'path';
 import * as core from "@actions/core";
-import * as SaxonJS from 'saxon-js';
 import * as which from 'which';
 import { messages, messagesFormatter } from './messages';
 
@@ -69,13 +68,13 @@ export class TestsRunner {
         const xunitPath = parasoftXmlReportPath.substring(0, parasoftXmlReportPath.lastIndexOf('.xml')) + '-xunit.xml';
         
         core.info(messagesFormatter.format(messages.converting_soatest_report_to_xunit, parasoftXmlReportPath));
-        let exitCode = 0;
         const javaPath = this.getSOAtestJavaPath(runOptions.installDir);
-        if (javaPath) {
-            exitCode = (await this.convertReportWithJava(javaPath, parasoftXmlReportPath, xunitPath, runOptions.workingDir)).exitCode;
-        } else {
-            this.convertReportWithNodeJs(parasoftXmlReportPath, xunitPath, runOptions.workingDir);
+
+        if (!javaPath) {
+            return {exitCode: -1};
         }
+
+        const exitCode = (await this.convertReportWithJava(javaPath, parasoftXmlReportPath, xunitPath, runOptions.workingDir)).exitCode;
         if (exitCode == 0) {
             core.info(messagesFormatter.format(messages.converted_xunit_report, xunitPath));
         }
@@ -196,22 +195,6 @@ export class TestsRunner {
             const cliProcess = cp.spawn(`${commandLine}`, {shell: true, windowsHide: true });
             this.handleCliProcess(cliProcess, resolve, reject);
         });
-    }
-
-    private convertReportWithNodeJs(sourcePath: string, outPath: string, defaultWorkingDirectory: string) : void
-    {
-        core.info(messages.use_nodejs_to_convert_report);
-        let xmlReportText = fs.readFileSync(sourcePath, 'utf8');
-        xmlReportText = xmlReportText.replace("<ResultsSession ", `<ResultsSession pipelineBuildWorkingDirectory="${defaultWorkingDirectory}" `);
-        const xslJsonText = fs.readFileSync(pt.join(__dirname, "soatest-xunit.sef.json"), 'utf8');
-        const options: SaxonJS.options = {
-            stylesheetText: xslJsonText,
-            sourceText: xmlReportText,
-            destination: "serialized"
-        };
-
-        const resultString = SaxonJS.transform(options).principalResult;
-        fs.writeFileSync(outPath, resultString);
     }
 
     private handleCliProcess(cliProcess, resolve, reject) {

@@ -84,8 +84,8 @@ class TestsRunner {
             soatestcli = `"${pt.join(runOptions.installDir, soatestcli)}"`;
         }
         let commandLine = soatestcli;
-        if (runOptions.data) {
-            commandLine += ` -data "${runOptions.data}"`;
+        if (runOptions.soatestWorkspace) {
+            commandLine += ` -data "${runOptions.soatestWorkspace}"`;
         }
         if (runOptions.testConfig) {
             commandLine += ` -config "${runOptions.testConfig}"`;
@@ -39762,7 +39762,7 @@ async function run() {
         const runOptions = {
             installDir: core.getInput("installDir", { required: false }),
             workingDir: core.getInput("workingDir", { required: false }),
-            data: core.getInput("data", { required: false }),
+            soatestWorkspace: core.getInput("soatestWorkspace", { required: false }),
             testConfig: core.getInput("testConfig", { required: false }),
             resource: core.getInput("resource", { required: false }),
             settings: core.getInput("settings", { required: false }),

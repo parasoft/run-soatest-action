@@ -12,7 +12,7 @@ class Messages implements ISerializable<Messages> {
     exit_code!: string;
     failed_run_non_zero!: string;
     wrk_dir_not_exist!: string;
-    found_latest_xml_report!: string;
+    found_xml_report!: string;
     try_to_find_xml_report_in_folder!: string;
     find_xml_report!: string;
     find_xml_report_in_working_directory!: string;

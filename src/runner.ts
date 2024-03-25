@@ -176,11 +176,10 @@ export class TestsRunner {
             core.info(messagesFormatter.format(messages.try_to_find_xml_report_in_folder, report));
         }
 
-        const reportFiles = fs.readdirSync(reportDir).filter(file => file.includes(reportName) && file.endsWith('.xml'));
+        const reportFiles = fs.readdirSync(reportDir).filter(file => file.startsWith(reportName) && file.endsWith('.xml'));
         if (reportFiles.length != 0) {
-            // add core.info here, log message tell user will found the latest xml report
             report = pt.join(reportDir, reportFiles.sort((a, b) => fs.statSync(pt.join(reportDir, b)).mtime.getTime() - fs.statSync(pt.join(reportDir, a)).mtime.getTime())[0]);
-            core.info(messagesFormatter.format(messages.found_latest_xml_report, report));
+            core.info(messagesFormatter.format(messages.found_xml_report, report));
             return report;
         }
         // No xml report found

@@ -183,7 +183,7 @@ export class TestsRunner {
 
     private async convertReportWithJava(javaPath: string, sourcePath: string, outPath: string, defaultWorkingDirectory: string) : Promise<RunDetails>
     {
-        core.info(messagesFormatter.format(messages.using_java_to_convert_report, javaPath));
+        core.debug(messages.using_java_to_convert_report);
         // Transform with java
         const jarPath = pt.join(__dirname, "SaxonHE12-2J/saxon-he-12.2.jar");
         const xslPath = pt.join(__dirname, "soatest-xunit.xsl");
@@ -210,30 +210,29 @@ export class TestsRunner {
     }
 
     private getSOAtestJavaPath(installDir: string): string | undefined {
-        let javaFilePath;
-        if (installDir && fs.existsSync(installDir)) {
-            javaFilePath = this.doGetSOAtestJavaPath(installDir);
-        } else {
+        if (!installDir) {
             try {
                 const soatestcliPath = which.sync('soatestcli');
                 installDir = soatestcliPath.substring(0, soatestcliPath.lastIndexOf('soatestcli') - 1);
-                javaFilePath = this.doGetSOAtestJavaPath(installDir);
             } catch (error) {
-                core.warning(messages.soatest_install_dir_not_found);
-                javaFilePath = undefined;
+                installDir = 'can not find soatestcli'; // it will return false when check installDir exist
             }
         }
-
+        if (!fs.existsSync(installDir)) {
+            core.warning(messages.soatest_install_dir_not_found);
+            return undefined;
+        }
+        const javaFilePath = this.doGetSOAtestJavaPath(installDir);
         if (!javaFilePath) {
             core.warning(messages.java_not_found_in_soatest_install_dir);
         } else {
-            core.info(messagesFormatter.format(messages.found_java_at, javaFilePath));
+            core.debug(messagesFormatter.format(messages.found_java_at, javaFilePath));
         }
         return javaFilePath;
     }
 
     private doGetSOAtestJavaPath(installDir: string): string | undefined {
-        core.info(messagesFormatter.format(messages.find_java_in_soatest_install_dir, installDir));
+        core.debug(messagesFormatter.format(messages.find_java_in_soatest_install_dir, installDir));
 
         const pluginsPath = pt.join(installDir, 'plugins');
         if (!fs.existsSync(pluginsPath)) {
@@ -244,7 +243,7 @@ export class TestsRunner {
             .filter(dirent => dirent.isDirectory() && dirent.name.startsWith('com.parasoft.ptest.jdk.eclipse.core.web.'))
             .map(dirent => pt.join(pluginsPath, dirent.name));
 
-        if (pluginPaths.length != 1) {
+        if (pluginPaths.length == 0) {
             return undefined;
         }
 

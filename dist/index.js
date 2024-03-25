@@ -42,7 +42,7 @@ const os = __nccwpck_require__(2037);
 const fs = __nccwpck_require__(7147);
 const pt = __nccwpck_require__(1017);
 const core = __nccwpck_require__(2186);
-const which = __nccwpck_require__(6143);
+const which = __nccwpck_require__(4207);
 const messages_1 = __nccwpck_require__(9112);
 class TestsRunner {
     async runSOAtest(runOptions) {
@@ -159,7 +159,7 @@ class TestsRunner {
         }
     }
     async convertReportWithJava(javaPath, sourcePath, outPath, defaultWorkingDirectory) {
-        core.info(messages_1.messagesFormatter.format(messages_1.messages.using_java_to_convert_report, javaPath));
+        core.debug(messages_1.messages.using_java_to_convert_report);
         // Transform with java
         const jarPath = pt.join(__dirname, "SaxonHE12-2J/saxon-he-12.2.jar");
         const xslPath = pt.join(__dirname, "soatest-xunit.xsl");
@@ -183,31 +183,30 @@ class TestsRunner {
         cliProcess.on("error", (err) => { reject(err); });
     }
     getSOAtestJavaPath(installDir) {
-        let javaFilePath;
-        if (installDir && fs.existsSync(installDir)) {
-            javaFilePath = this.doGetSOAtestJavaPath(installDir);
-        }
-        else {
+        if (!installDir) {
             try {
                 const soatestcliPath = which.sync('soatestcli');
                 installDir = soatestcliPath.substring(0, soatestcliPath.lastIndexOf('soatestcli') - 1);
-                javaFilePath = this.doGetSOAtestJavaPath(installDir);
             }
             catch (error) {
-                core.warning(messages_1.messages.soatest_install_dir_not_found);
-                javaFilePath = undefined;
+                installDir = 'can not find soatestcli'; // it will return false when check installDir exist
             }
         }
+        if (!fs.existsSync(installDir)) {
+            core.warning(messages_1.messages.soatest_install_dir_not_found);
+            return undefined;
+        }
+        const javaFilePath = this.doGetSOAtestJavaPath(installDir);
         if (!javaFilePath) {
             core.warning(messages_1.messages.java_not_found_in_soatest_install_dir);
         }
         else {
-            core.info(messages_1.messagesFormatter.format(messages_1.messages.found_java_at, javaFilePath));
+            core.debug(messages_1.messagesFormatter.format(messages_1.messages.found_java_at, javaFilePath));
         }
         return javaFilePath;
     }
     doGetSOAtestJavaPath(installDir) {
-        core.info(messages_1.messagesFormatter.format(messages_1.messages.find_java_in_soatest_install_dir, installDir));
+        core.debug(messages_1.messagesFormatter.format(messages_1.messages.find_java_in_soatest_install_dir, installDir));
         const pluginsPath = pt.join(installDir, 'plugins');
         if (!fs.existsSync(pluginsPath)) {
             return undefined;
@@ -215,7 +214,7 @@ class TestsRunner {
         const pluginPaths = fs.readdirSync(pluginsPath, { withFileTypes: true })
             .filter(dirent => dirent.isDirectory() && dirent.name.startsWith('com.parasoft.ptest.jdk.eclipse.core.web.'))
             .map(dirent => pt.join(pluginsPath, dirent.name));
-        if (pluginPaths.length != 1) {
+        if (pluginPaths.length == 0) {
             return undefined;
         }
         const jdkRootPath = pt.join(pluginPaths[0], 'jdk');
@@ -2058,6 +2057,167 @@ function isLoopbackAddress(host) {
         hostLower.startsWith('[0:0:0:0:0:0:0:1]'));
 }
 //# sourceMappingURL=proxy.js.map
+
+/***/ }),
+
+/***/ 7126:
+/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
+
+var fs = __nccwpck_require__(7147)
+var core
+if (process.platform === 'win32' || global.TESTING_WINDOWS) {
+  core = __nccwpck_require__(2001)
+} else {
+  core = __nccwpck_require__(9728)
+}
+
+module.exports = isexe
+isexe.sync = sync
+
+function isexe (path, options, cb) {
+  if (typeof options === 'function') {
+    cb = options
+    options = {}
+  }
+
+  if (!cb) {
+    if (typeof Promise !== 'function') {
+      throw new TypeError('callback not provided')
+    }
+
+    return new Promise(function (resolve, reject) {
+      isexe(path, options || {}, function (er, is) {
+        if (er) {
+          reject(er)
+        } else {
+          resolve(is)
+        }
+      })
+    })
+  }
+
+  core(path, options || {}, function (er, is) {
+    // ignore EACCES because that just means we aren't allowed to run it
+    if (er) {
+      if (er.code === 'EACCES' || options && options.ignoreErrors) {
+        er = null
+        is = false
+      }
+    }
+    cb(er, is)
+  })
+}
+
+function sync (path, options) {
+  // my kingdom for a filtered catch
+  try {
+    return core.sync(path, options || {})
+  } catch (er) {
+    if (options && options.ignoreErrors || er.code === 'EACCES') {
+      return false
+    } else {
+      throw er
+    }
+  }
+}
+
+
+/***/ }),
+
+/***/ 9728:
+/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
+
+module.exports = isexe
+isexe.sync = sync
+
+var fs = __nccwpck_require__(7147)
+
+function isexe (path, options, cb) {
+  fs.stat(path, function (er, stat) {
+    cb(er, er ? false : checkStat(stat, options))
+  })
+}
+
+function sync (path, options) {
+  return checkStat(fs.statSync(path), options)
+}
+
+function checkStat (stat, options) {
+  return stat.isFile() && checkMode(stat, options)
+}
+
+function checkMode (stat, options) {
+  var mod = stat.mode
+  var uid = stat.uid
+  var gid = stat.gid
+
+  var myUid = options.uid !== undefined ?
+    options.uid : process.getuid && process.getuid()
+  var myGid = options.gid !== undefined ?
+    options.gid : process.getgid && process.getgid()
+
+  var u = parseInt('100', 8)
+  var g = parseInt('010', 8)
+  var o = parseInt('001', 8)
+  var ug = u | g
+
+  var ret = (mod & o) ||
+    (mod & g) && gid === myGid ||
+    (mod & u) && uid === myUid ||
+    (mod & ug) && myUid === 0
+
+  return ret
+}
+
+
+/***/ }),
+
+/***/ 2001:
+/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
+
+module.exports = isexe
+isexe.sync = sync
+
+var fs = __nccwpck_require__(7147)
+
+function checkPathExt (path, options) {
+  var pathext = options.pathExt !== undefined ?
+    options.pathExt : process.env.PATHEXT
+
+  if (!pathext) {
+    return true
+  }
+
+  pathext = pathext.split(';')
+  if (pathext.indexOf('') !== -1) {
+    return true
+  }
+  for (var i = 0; i < pathext.length; i++) {
+    var p = pathext[i].toLowerCase()
+    if (p && path.substr(-p.length).toLowerCase() === p) {
+      return true
+    }
+  }
+  return false
+}
+
+function checkStat (stat, path, options) {
+  if (!stat.isSymbolicLink() && !stat.isFile()) {
+    return false
+  }
+  return checkPathExt(path, options)
+}
+
+function isexe (path, options, cb) {
+  fs.stat(path, function (er, stat) {
+    cb(er, er ? false : checkStat(stat, path, options))
+  })
+}
+
+function sync (path, options) {
+  return checkStat(fs.statSync(path), path, options)
+}
+
 
 /***/ }),
 
@@ -25031,114 +25191,128 @@ exports["default"] = _default;
 
 /***/ }),
 
-/***/ 6143:
+/***/ 4207:
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
-const { isexe, sync: isexeSync } = __nccwpck_require__(5200)
-const { join, delimiter, sep, posix } = __nccwpck_require__(1017)
+const isWindows = process.platform === 'win32' ||
+    process.env.OSTYPE === 'cygwin' ||
+    process.env.OSTYPE === 'msys'
 
-const isWindows = process.platform === 'win32'
-
-// used to check for slashed in commands passed in. always checks for the posix
-// seperator on all platforms, and checks for the current separator when not on
-// a posix platform. don't use the isWindows check for this since that is mocked
-// in tests but we still need the code to actually work when called. that is also
-// why it is ignored from coverage.
-/* istanbul ignore next */
-const rSlash = new RegExp(`[${posix.sep}${sep === posix.sep ? '' : sep}]`.replace(/(\\)/g, '\\$1'))
-const rRel = new RegExp(`^\\.${rSlash.source}`)
+const path = __nccwpck_require__(1017)
+const COLON = isWindows ? ';' : ':'
+const isexe = __nccwpck_require__(7126)
 
 const getNotFoundError = (cmd) =>
   Object.assign(new Error(`not found: ${cmd}`), { code: 'ENOENT' })
 
-const getPathInfo = (cmd, {
-  path: optPath = process.env.PATH,
-  pathExt: optPathExt = process.env.PATHEXT,
-  delimiter: optDelimiter = delimiter,
-}) => {
+const getPathInfo = (cmd, opt) => {
+  const colon = opt.colon || COLON
+
   // If it has a slash, then we don't bother searching the pathenv.
   // just check the file itself, and that's it.
-  const pathEnv = cmd.match(rSlash) ? [''] : [
-    // windows always checks the cwd first
-    ...(isWindows ? [process.cwd()] : []),
-    ...(optPath || /* istanbul ignore next: very unusual */ '').split(optDelimiter),
-  ]
+  const pathEnv = cmd.match(/\//) || isWindows && cmd.match(/\\/) ? ['']
+    : (
+      [
+        // windows always checks the cwd first
+        ...(isWindows ? [process.cwd()] : []),
+        ...(opt.path || process.env.PATH ||
+          /* istanbul ignore next: very unusual */ '').split(colon),
+      ]
+    )
+  const pathExtExe = isWindows
+    ? opt.pathExt || process.env.PATHEXT || '.EXE;.CMD;.BAT;.COM'
+    : ''
+  const pathExt = isWindows ? pathExtExe.split(colon) : ['']
 
   if (isWindows) {
-    const pathExtExe = optPathExt ||
-      ['.EXE', '.CMD', '.BAT', '.COM'].join(optDelimiter)
-    const pathExt = pathExtExe.split(optDelimiter).flatMap((item) => [item, item.toLowerCase()])
-    if (cmd.includes('.') && pathExt[0] !== '') {
+    if (cmd.indexOf('.') !== -1 && pathExt[0] !== '')
       pathExt.unshift('')
-    }
-    return { pathEnv, pathExt, pathExtExe }
   }
 
-  return { pathEnv, pathExt: [''] }
+  return {
+    pathEnv,
+    pathExt,
+    pathExtExe,
+  }
 }
 
-const getPathPart = (raw, cmd) => {
-  const pathPart = /^".*"$/.test(raw) ? raw.slice(1, -1) : raw
-  const prefix = !pathPart && rRel.test(cmd) ? cmd.slice(0, 2) : ''
-  return prefix + join(pathPart, cmd)
-}
+const which = (cmd, opt, cb) => {
+  if (typeof opt === 'function') {
+    cb = opt
+    opt = {}
+  }
+  if (!opt)
+    opt = {}
 
-const which = async (cmd, opt = {}) => {
   const { pathEnv, pathExt, pathExtExe } = getPathInfo(cmd, opt)
   const found = []
 
-  for (const envPart of pathEnv) {
-    const p = getPathPart(envPart, cmd)
+  const step = i => new Promise((resolve, reject) => {
+    if (i === pathEnv.length)
+      return opt.all && found.length ? resolve(found)
+        : reject(getNotFoundError(cmd))
 
-    for (const ext of pathExt) {
-      const withExt = p + ext
-      const is = await isexe(withExt, { pathExt: pathExtExe, ignoreErrors: true })
-      if (is) {
-        if (!opt.all) {
-          return withExt
-        }
-        found.push(withExt)
+    const ppRaw = pathEnv[i]
+    const pathPart = /^".*"$/.test(ppRaw) ? ppRaw.slice(1, -1) : ppRaw
+
+    const pCmd = path.join(pathPart, cmd)
+    const p = !pathPart && /^\.[\\\/]/.test(cmd) ? cmd.slice(0, 2) + pCmd
+      : pCmd
+
+    resolve(subStep(p, i, 0))
+  })
+
+  const subStep = (p, i, ii) => new Promise((resolve, reject) => {
+    if (ii === pathExt.length)
+      return resolve(step(i + 1))
+    const ext = pathExt[ii]
+    isexe(p + ext, { pathExt: pathExtExe }, (er, is) => {
+      if (!er && is) {
+        if (opt.all)
+          found.push(p + ext)
+        else
+          return resolve(p + ext)
       }
-    }
-  }
+      return resolve(subStep(p, i, ii + 1))
+    })
+  })
 
-  if (opt.all && found.length) {
-    return found
-  }
-
-  if (opt.nothrow) {
-    return null
-  }
-
-  throw getNotFoundError(cmd)
+  return cb ? step(0).then(res => cb(null, res), cb) : step(0)
 }
 
-const whichSync = (cmd, opt = {}) => {
+const whichSync = (cmd, opt) => {
+  opt = opt || {}
+
   const { pathEnv, pathExt, pathExtExe } = getPathInfo(cmd, opt)
   const found = []
 
-  for (const pathEnvPart of pathEnv) {
-    const p = getPathPart(pathEnvPart, cmd)
+  for (let i = 0; i < pathEnv.length; i ++) {
+    const ppRaw = pathEnv[i]
+    const pathPart = /^".*"$/.test(ppRaw) ? ppRaw.slice(1, -1) : ppRaw
 
-    for (const ext of pathExt) {
-      const withExt = p + ext
-      const is = isexeSync(withExt, { pathExt: pathExtExe, ignoreErrors: true })
-      if (is) {
-        if (!opt.all) {
-          return withExt
+    const pCmd = path.join(pathPart, cmd)
+    const p = !pathPart && /^\.[\\\/]/.test(cmd) ? cmd.slice(0, 2) + pCmd
+      : pCmd
+
+    for (let j = 0; j < pathExt.length; j ++) {
+      const cur = p + pathExt[j]
+      try {
+        const is = isexe.sync(cur, { pathExt: pathExtExe })
+        if (is) {
+          if (opt.all)
+            found.push(cur)
+          else
+            return cur
         }
-        found.push(withExt)
-      }
+      } catch (ex) {}
     }
   }
 
-  if (opt.all && found.length) {
+  if (opt.all && found.length)
     return found
-  }
 
-  if (opt.nothrow) {
+  if (opt.nothrow)
     return null
-  }
 
   throw getNotFoundError(cmd)
 }
@@ -25218,14 +25392,6 @@ module.exports = require("events");
 
 "use strict";
 module.exports = require("fs");
-
-/***/ }),
-
-/***/ 3292:
-/***/ ((module) => {
-
-"use strict";
-module.exports = require("fs/promises");
 
 /***/ }),
 
@@ -27011,212 +27177,6 @@ function parseParams (str) {
 
 module.exports = parseParams
 
-
-/***/ }),
-
-/***/ 5200:
-/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
-
-"use strict";
-
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    var desc = Object.getOwnPropertyDescriptor(m, k);
-    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
-      desc = { enumerable: true, get: function() { return m[k]; } };
-    }
-    Object.defineProperty(o, k2, desc);
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
-    Object.defineProperty(o, "default", { enumerable: true, value: v });
-}) : function(o, v) {
-    o["default"] = v;
-});
-var __importStar = (this && this.__importStar) || function (mod) {
-    if (mod && mod.__esModule) return mod;
-    var result = {};
-    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
-    __setModuleDefault(result, mod);
-    return result;
-};
-var __exportStar = (this && this.__exportStar) || function(m, exports) {
-    for (var p in m) if (p !== "default" && !Object.prototype.hasOwnProperty.call(exports, p)) __createBinding(exports, m, p);
-};
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.sync = exports.isexe = exports.posix = exports.win32 = void 0;
-const posix = __importStar(__nccwpck_require__(5523));
-exports.posix = posix;
-const win32 = __importStar(__nccwpck_require__(4323));
-exports.win32 = win32;
-__exportStar(__nccwpck_require__(7252), exports);
-const platform = process.env._ISEXE_TEST_PLATFORM_ || process.platform;
-const impl = platform === 'win32' ? win32 : posix;
-/**
- * Determine whether a path is executable on the current platform.
- */
-exports.isexe = impl.isexe;
-/**
- * Synchronously determine whether a path is executable on the
- * current platform.
- */
-exports.sync = impl.sync;
-//# sourceMappingURL=index.js.map
-
-/***/ }),
-
-/***/ 7252:
-/***/ ((__unused_webpack_module, exports) => {
-
-"use strict";
-
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-//# sourceMappingURL=options.js.map
-
-/***/ }),
-
-/***/ 5523:
-/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
-
-"use strict";
-
-/**
- * This is the Posix implementation of isexe, which uses the file
- * mode and uid/gid values.
- *
- * @module
- */
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.sync = exports.isexe = void 0;
-const fs_1 = __nccwpck_require__(7147);
-const promises_1 = __nccwpck_require__(3292);
-/**
- * Determine whether a path is executable according to the mode and
- * current (or specified) user and group IDs.
- */
-const isexe = async (path, options = {}) => {
-    const { ignoreErrors = false } = options;
-    try {
-        return checkStat(await (0, promises_1.stat)(path), options);
-    }
-    catch (e) {
-        const er = e;
-        if (ignoreErrors || er.code === 'EACCES')
-            return false;
-        throw er;
-    }
-};
-exports.isexe = isexe;
-/**
- * Synchronously determine whether a path is executable according to
- * the mode and current (or specified) user and group IDs.
- */
-const sync = (path, options = {}) => {
-    const { ignoreErrors = false } = options;
-    try {
-        return checkStat((0, fs_1.statSync)(path), options);
-    }
-    catch (e) {
-        const er = e;
-        if (ignoreErrors || er.code === 'EACCES')
-            return false;
-        throw er;
-    }
-};
-exports.sync = sync;
-const checkStat = (stat, options) => stat.isFile() && checkMode(stat, options);
-const checkMode = (stat, options) => {
-    const myUid = options.uid ?? process.getuid?.();
-    const myGroups = options.groups ?? process.getgroups?.() ?? [];
-    const myGid = options.gid ?? process.getgid?.() ?? myGroups[0];
-    if (myUid === undefined || myGid === undefined) {
-        throw new Error('cannot get uid or gid');
-    }
-    const groups = new Set([myGid, ...myGroups]);
-    const mod = stat.mode;
-    const uid = stat.uid;
-    const gid = stat.gid;
-    const u = parseInt('100', 8);
-    const g = parseInt('010', 8);
-    const o = parseInt('001', 8);
-    const ug = u | g;
-    return !!(mod & o ||
-        (mod & g && groups.has(gid)) ||
-        (mod & u && uid === myUid) ||
-        (mod & ug && myUid === 0));
-};
-//# sourceMappingURL=posix.js.map
-
-/***/ }),
-
-/***/ 4323:
-/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
-
-"use strict";
-
-/**
- * This is the Windows implementation of isexe, which uses the file
- * extension and PATHEXT setting.
- *
- * @module
- */
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.sync = exports.isexe = void 0;
-const fs_1 = __nccwpck_require__(7147);
-const promises_1 = __nccwpck_require__(3292);
-/**
- * Determine whether a path is executable based on the file extension
- * and PATHEXT environment variable (or specified pathExt option)
- */
-const isexe = async (path, options = {}) => {
-    const { ignoreErrors = false } = options;
-    try {
-        return checkStat(await (0, promises_1.stat)(path), path, options);
-    }
-    catch (e) {
-        const er = e;
-        if (ignoreErrors || er.code === 'EACCES')
-            return false;
-        throw er;
-    }
-};
-exports.isexe = isexe;
-/**
- * Synchronously determine whether a path is executable based on the file
- * extension and PATHEXT environment variable (or specified pathExt option)
- */
-const sync = (path, options = {}) => {
-    const { ignoreErrors = false } = options;
-    try {
-        return checkStat((0, fs_1.statSync)(path), path, options);
-    }
-    catch (e) {
-        const er = e;
-        if (ignoreErrors || er.code === 'EACCES')
-            return false;
-        throw er;
-    }
-};
-exports.sync = sync;
-const checkPathExt = (path, options) => {
-    const { pathExt = process.env.PATHEXT || '' } = options;
-    const peSplit = pathExt.split(';');
-    if (peSplit.indexOf('') !== -1) {
-        return true;
-    }
-    for (let i = 0; i < peSplit.length; i++) {
-        const p = peSplit[i].toLowerCase();
-        const ext = path.substring(path.length - p.length).toLowerCase();
-        if (p && ext === p) {
-            return true;
-        }
-    }
-    return false;
-};
-const checkStat = (stat, path, options) => stat.isFile() && checkPathExt(path, options);
-//# sourceMappingURL=win32.js.map
 
 /***/ })
 

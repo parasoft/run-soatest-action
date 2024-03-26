@@ -82,7 +82,7 @@ export class TestsRunner {
             return {exitCode: -1};
         }
 
-        const exitCode = (await this.convertReportWithJava(javaPath, parasoftXmlReportPath, xunitPath, runOptions.workingDir)).exitCode;
+        const exitCode = (await this.convertReportWithJava(javaPath, parasoftXmlReportPath, xunitPath, this.workingDir)).exitCode;
         if (exitCode == 0) {
             core.info(messagesFormatter.format(messages.converted_xunit_report, xunitPath));
         }

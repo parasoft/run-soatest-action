@@ -14,8 +14,8 @@ export interface RunOptions {
     /* Installation folder of Parasoft SOAtest. */
     installDir: string;
 
-    /* Working directory for running SOAtest. */
-    workingDir: string;
+    /* Specify a path of the SOAtest workspace directory. */
+    soatestWorkspace: string;
 
     /* Test configuration to be used for test execution. */
     testConfig: string;
@@ -36,23 +36,31 @@ export interface RunOptions {
     environment: string;
 
     /* Convert Parasoft SOAtest report to XUnit format. */
-    convertReportToXUnit: boolean; 
+    convertReportToXUnit: boolean;
 
     /* Additional parameters for soatestcli executable. */
     additionalParams: string;
 }
 
 export class TestsRunner {
+    workingDir = process.env.GITHUB_WORKSPACE + "";
+
     async runSOAtest(runOptions : RunOptions) : Promise<RunDetails> {
-        if (!fs.existsSync(runOptions.workingDir)) {
-            return Promise.reject(messagesFormatter.format(messages.wrk_dir_not_exist, runOptions.workingDir));
+        if (!fs.existsSync(this.workingDir)) {
+            return Promise.reject(messagesFormatter.format(messages.work_dir_not_exist, this.workingDir));
         }
+        core.info(messagesFormatter.format(messages.run_started, this.workingDir));
+
+        if (!fs.existsSync(runOptions.soatestWorkspace)) {
+            return Promise.reject(messagesFormatter.format(messages.soatest_workspace_dir_not_exist, runOptions.soatestWorkspace));
+        }
+
         const commandLine = this.createSOAtestCommandLine(runOptions).trim();
         core.info(commandLine);
 
         const runPromise = new Promise<RunDetails>((resolve, reject) => {
             const cliEnv = this.createParasoftEnvironment();
-            const cliProcess = cp.spawn(`${commandLine}`, { cwd: runOptions.workingDir, env: cliEnv, shell: true, windowsHide: true });
+            const cliProcess = cp.spawn(`${commandLine}`, { env: cliEnv, shell: true, windowsHide: true });
             this.handleCliProcess(cliProcess, resolve, reject);
         });
 
@@ -60,13 +68,13 @@ export class TestsRunner {
     }
 
     async convertReportToXUnit(runOptions: RunOptions): Promise<RunDetails> {
-        const parasoftXmlReportPath = this.findParasoftXmlReport(runOptions.report, runOptions.workingDir);
+        const parasoftXmlReportPath = this.findParasoftXmlReport(runOptions.report, this.workingDir);
         if (!parasoftXmlReportPath) {
             return Promise.reject(messagesFormatter.format(messages.soatest_report_not_found, runOptions.report));
         }
 
         const xunitPath = parasoftXmlReportPath.substring(0, parasoftXmlReportPath.lastIndexOf('.xml')) + '-xunit.xml';
-        
+
         core.info(messagesFormatter.format(messages.converting_soatest_report_to_xunit, parasoftXmlReportPath));
         const javaPath = this.getSOAtestJavaPath(runOptions.installDir);
 
@@ -74,7 +82,7 @@ export class TestsRunner {
             return {exitCode: -1};
         }
 
-        const exitCode = (await this.convertReportWithJava(javaPath, parasoftXmlReportPath, xunitPath, runOptions.workingDir)).exitCode;
+        const exitCode = (await this.convertReportWithJava(javaPath, parasoftXmlReportPath, xunitPath, this.workingDir)).exitCode;
         if (exitCode == 0) {
             core.info(messagesFormatter.format(messages.converted_xunit_report, xunitPath));
         }
@@ -91,8 +99,8 @@ export class TestsRunner {
 
         let commandLine = soatestcli;
 
-        if (runOptions.workingDir) {
-            commandLine += ` -data "${runOptions.workingDir}"`;
+        if (runOptions.soatestWorkspace) {
+            commandLine += ` -data "${runOptions.soatestWorkspace}"`;
         }
 
         if (runOptions.testConfig) {

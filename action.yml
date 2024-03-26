@@ -8,8 +8,8 @@
     installDir:
       description: 'Installation folder of Parasoft SOAtest. If not specified, the soatestcli executable must be added to PATH.'
       required: false
-    workingDir:
-      description: 'Working directory for running SOAtest.'
+    soatestWorkspace:
+      description: 'Path to the SOAtest workspace directory.'
       required: false
       default: ${{ github.workspace }}
     testConfig:
@@ -17,7 +17,7 @@
       required: false
       default: 'user://Example Configuration'
     resource:
-      description: 'Relative path(s) to the test suite(s) within the workspace.'
+      description: 'Relative path(s) to the test suite(s) within the SOAtest workspace.'
       required: false
       default: 'TestAssets'
     settings:

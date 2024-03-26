@@ -152,7 +152,7 @@ export class TestsRunner {
             core.info(messages.find_xml_report);
         } else {
             // with relative path
-            core.info(messagesFormatter.format(messages.find_xml_report_in_working_directory , workingDir, report));
+            core.info(messagesFormatter.format(messages.find_xml_report_in_working_directory , workingDir));
             report = pt.join(workingDir, report);
         }
 
@@ -165,7 +165,7 @@ export class TestsRunner {
         const stats = fs.statSync(report);
 
         if (stats.isFile()) {
-            // xml report will exist when -report param is report.xml or report.html
+            // The XML report will exist when the -report parameter is set to either xxx.xml or xxx.html.
             reportDir = pt.dirname(report);
             reportName = pt.basename(report, pt.extname(report));
         }
@@ -179,7 +179,11 @@ export class TestsRunner {
         const reportFiles = fs.readdirSync(reportDir).filter(file => file.startsWith(reportName) && file.endsWith('.xml'));
         if (reportFiles.length != 0) {
             report = pt.join(reportDir, reportFiles.sort((a, b) => fs.statSync(pt.join(reportDir, b)).mtime.getTime() - fs.statSync(pt.join(reportDir, a)).mtime.getTime())[0]);
-            core.info(messagesFormatter.format(messages.found_xml_report, report));
+            if (reportFiles.length == 1) {
+                core.info(messagesFormatter.format(messages.found_xml_report, report));
+            } else {
+                core.info(messagesFormatter.format(messages.find_latest_xml_report_in_working_directory, report));
+            }
             return report;
         }
         // No xml report found

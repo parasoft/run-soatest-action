@@ -38,9 +38,6 @@
       description: 'Enables the conversion of the SOAtest report into the xUnit format.'
       required: false
       default: true
-    javaRootPath:
-      description: 'Absolute location of the root path of Java installation. When found at the specified location, Java optimizes the efficiency of report processing. Otherwise, report processing will be significantly slower and may encounter memory issues when handling large reports.'
-      required: false
     additionalParams:
       description: 'Additional parameters for the soatestcli executable.'
       required: false

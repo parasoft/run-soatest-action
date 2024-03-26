@@ -12,7 +12,10 @@
     "soatest_report_not_found": "Parasoft SOAtest XML report not found at the specified location: {0}",
     "converting_soatest_report_to_xunit": "Converting Parasoft SOAtest report: {0} to xUnit report...",
     "converted_xunit_report": "XUnit report generated successfully: {0}",
-    "use_nodejs_to_convert_report": "Converting the report using Node.js...",
-    "using_java_to_convert_report": "Converting the report using Java located at: {0}...",
-    "failed_convert_report": "Report conversion failed with a non-zero exit code: {0}"
+    "using_java_to_convert_report": "Converting the report using Java...",
+    "failed_convert_report": "Report conversion failed with a non-zero exit code: {0}",
+    "soatest_install_dir_not_found": "Unable to process the XML report using Java bundled with SOAtest because the SOAtest installation directory is missing",
+    "java_not_found_in_soatest_install_dir": "Unable to process the XML report using Java bundled with SOAtest because it is missing",
+    "found_java_at": "Found Java located at: {0}",
+    "find_java_in_soatest_install_dir": "Trying to find Java from SOAtest installation directory {0}..."
 }

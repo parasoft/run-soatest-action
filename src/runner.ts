@@ -3,7 +3,7 @@ import * as os from 'os';
 import * as fs from 'fs';
 import * as pt from 'path';
 import * as core from "@actions/core";
-import * as SaxonJS from 'saxon-js';
+import * as which from 'which';
 import { messages, messagesFormatter } from './messages';
 
 export interface RunDetails {
@@ -34,9 +34,6 @@ export interface RunOptions {
 
     /* Specify a .env file. */
     environment: string;
-
-    /* Root path of Java installation. */
-    javaRootPath: string;
 
     /* Convert Parasoft SOAtest report to XUnit format. */
     convertReportToXUnit: boolean;
@@ -79,13 +76,13 @@ export class TestsRunner {
         const xunitPath = parasoftXmlReportPath.substring(0, parasoftXmlReportPath.lastIndexOf('.xml')) + '-xunit.xml';
 
         core.info(messagesFormatter.format(messages.converting_soatest_report_to_xunit, parasoftXmlReportPath));
-        let exitCode = 0;
-        const javaPath = this.getJavaPath(runOptions.javaRootPath);
-        if (javaPath) {
-            exitCode = (await this.convertReportWithJava(javaPath, parasoftXmlReportPath, xunitPath, this.workingDir)).exitCode;
-        } else {
-            this.convertReportWithNodeJs(parasoftXmlReportPath, xunitPath, this.workingDir);
+        const javaPath = this.getSOAtestJavaPath(runOptions.installDir);
+
+        if (!javaPath) {
+            return {exitCode: -1};
         }
+
+        const exitCode = (await this.convertReportWithJava(javaPath, parasoftXmlReportPath, xunitPath, runOptions.workingDir)).exitCode;
         if (exitCode == 0) {
             core.info(messagesFormatter.format(messages.converted_xunit_report, xunitPath));
         }
@@ -194,7 +191,7 @@ export class TestsRunner {
 
     private async convertReportWithJava(javaPath: string, sourcePath: string, outPath: string, defaultWorkingDirectory: string) : Promise<RunDetails>
     {
-        core.info(messagesFormatter.format(messages.using_java_to_convert_report, javaPath));
+        core.debug(messages.using_java_to_convert_report);
         // Transform with java
         const jarPath = pt.join(__dirname, "SaxonHE12-2J/saxon-he-12.2.jar");
         const xslPath = pt.join(__dirname, "soatest-xunit.xsl");
@@ -206,22 +203,6 @@ export class TestsRunner {
             const cliProcess = cp.spawn(`${commandLine}`, {shell: true, windowsHide: true });
             this.handleCliProcess(cliProcess, resolve, reject);
         });
-    }
-
-    private convertReportWithNodeJs(sourcePath: string, outPath: string, defaultWorkingDirectory: string) : void
-    {
-        core.info(messages.use_nodejs_to_convert_report);
-        let xmlReportText = fs.readFileSync(sourcePath, 'utf8');
-        xmlReportText = xmlReportText.replace("<ResultsSession ", `<ResultsSession pipelineBuildWorkingDirectory="${defaultWorkingDirectory}" `);
-        const xslJsonText = fs.readFileSync(pt.join(__dirname, "soatest-xunit.sef.json"), 'utf8');
-        const options: SaxonJS.options = {
-            stylesheetText: xslJsonText,
-            sourceText: xmlReportText,
-            destination: "serialized"
-        };
-
-        const resultString = SaxonJS.transform(options).principalResult;
-        fs.writeFileSync(outPath, resultString);
     }
 
     private handleCliProcess(cliProcess, resolve, reject) {
@@ -236,15 +217,53 @@ export class TestsRunner {
         cliProcess.on("error", (err) => { reject(err); });
     }
 
-    private getJavaPath(javaRootPath: string): string | undefined {
-        if (!javaRootPath) {
+    private getSOAtestJavaPath(installDir: string): string | undefined {
+        if (!installDir) {
+            try {
+                const soatestcliPath = which.sync('soatestcli');
+                installDir = soatestcliPath.substring(0, soatestcliPath.lastIndexOf('soatestcli') - 1);
+            } catch (error) {
+                installDir = 'can not find soatestcli'; // it will return false when check installDir exist
+            }
+        }
+        if (!fs.existsSync(installDir)) {
+            core.warning(messages.soatest_install_dir_not_found);
             return undefined;
         }
-        const javaFileName = os.platform() == 'win32' ? "java.exe" : "java";
-        const javaFilePath = pt.join(javaRootPath, "bin", javaFileName);
-        if (fs.existsSync(javaFilePath)) {
-            return javaFilePath;
+        const javaFilePath = this.doGetSOAtestJavaPath(installDir);
+        if (!javaFilePath) {
+            core.warning(messages.java_not_found_in_soatest_install_dir);
+        } else {
+            core.debug(messagesFormatter.format(messages.found_java_at, javaFilePath));
         }
-        return undefined;
+        return javaFilePath;
+    }
+
+    private doGetSOAtestJavaPath(installDir: string): string | undefined {
+        core.debug(messagesFormatter.format(messages.find_java_in_soatest_install_dir, installDir));
+
+        const pluginsPath = pt.join(installDir, 'plugins');
+        if (!fs.existsSync(pluginsPath)) {
+            return undefined;
+        }
+
+        const pluginPaths = fs.readdirSync(pluginsPath, { withFileTypes: true })
+            .filter(dirent => dirent.isDirectory() && dirent.name.startsWith('com.parasoft.ptest.jdk.eclipse.core.web.'))
+            .map(dirent => pt.join(pluginsPath, dirent.name));
+
+        if (pluginPaths.length == 0) {
+            return undefined;
+        }
+
+        const jdkRootPath = pt.join(pluginPaths[0], 'jdk');
+
+        const javaFileName = os.platform() == 'win32' ? "java.exe" : "java";
+        const javaFilePath = pt.join(jdkRootPath, "bin", javaFileName);
+
+        if (!fs.existsSync(javaFilePath)) {
+            return undefined;
+        }
+
+        return javaFilePath;
     }
 }

@@ -131,39 +131,44 @@ class TestsRunner {
         return environment;
     }
     findParasoftXmlReport(report, workingDir) {
-        const getReportPath = function (report) {
-            if (!fs.existsSync(report)) {
-                return undefined;
-            }
-            const stats = fs.statSync(report);
-            if (stats.isFile()) {
-                report = report.replace(report.substring(report.lastIndexOf('.')), '.xml');
-                if (fs.existsSync(report)) {
-                    core.info(messages_1.messagesFormatter.format(messages_1.messages.found_xml_report, report));
-                    return report;
-                }
-                return undefined;
-            }
-            if (stats.isDirectory()) {
-                core.info(messages_1.messagesFormatter.format(messages_1.messages.try_to_find_xml_report_in_folder, report));
-                report = pt.join(report, 'report.xml');
-                if (fs.existsSync(report)) {
-                    core.info(messages_1.messagesFormatter.format(messages_1.messages.found_xml_report, report));
-                    return report;
-                }
-            }
-        };
-        // with absolute path
         if (pt.isAbsolute(report)) {
+            // with absolute path
             core.info(messages_1.messages.find_xml_report);
-            return getReportPath(report);
-            // with relative path
         }
         else {
-            core.info(messages_1.messagesFormatter.format(messages_1.messages.find_xml_report_in_working_directory, workingDir, report));
+            // with relative path
+            core.info(messages_1.messagesFormatter.format(messages_1.messages.find_xml_report_in_working_directory, workingDir));
             report = pt.join(workingDir, report);
-            return getReportPath(report);
         }
+        if (!fs.existsSync(report)) {
+            return undefined;
+        }
+        let reportDir = '';
+        let reportName = '';
+        const stats = fs.statSync(report);
+        if (stats.isFile()) {
+            // The XML report will exist when the -report parameter is set to either xxx.xml or xxx.html.
+            reportDir = pt.dirname(report);
+            reportName = pt.basename(report, pt.extname(report));
+        }
+        if (stats.isDirectory()) {
+            reportDir = report;
+            reportName = 'report';
+            core.info(messages_1.messagesFormatter.format(messages_1.messages.try_to_find_xml_report_in_folder, report));
+        }
+        const reportFiles = fs.readdirSync(reportDir).filter(file => file.startsWith(reportName) && file.endsWith('.xml'));
+        if (reportFiles.length != 0) {
+            report = pt.join(reportDir, reportFiles.sort((a, b) => fs.statSync(pt.join(reportDir, b)).mtime.getTime() - fs.statSync(pt.join(reportDir, a)).mtime.getTime())[0]);
+            if (reportFiles.length == 1) {
+                core.info(messages_1.messagesFormatter.format(messages_1.messages.found_xml_report, report));
+            }
+            else {
+                core.info(messages_1.messagesFormatter.format(messages_1.messages.found_multiple_reports_and_use_the_latest_one, report));
+            }
+            return report;
+        }
+        // No xml report found
+        return undefined;
     }
     async convertReportWithJava(javaPath, sourcePath, outPath, defaultWorkingDirectory) {
         core.debug(messages_1.messages.using_java_to_convert_report);

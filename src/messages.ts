@@ -17,6 +17,7 @@ class Messages implements ISerializable<Messages> {
     try_to_find_xml_report_in_folder!: string;
     find_xml_report!: string;
     find_xml_report_in_working_directory!: string;
+    found_multiple_reports_and_use_the_latest_one!: string;
     soatest_report_not_found!: string;
     converting_soatest_report_to_xunit!: string;
     converted_xunit_report!: string;

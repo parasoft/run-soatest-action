@@ -9,6 +9,7 @@
     "try_to_find_xml_report_in_folder": "Trying to find report.xml file under directory path: {0}...",
     "find_xml_report": "Finding Parasoft SOAtest XML report...",
     "find_xml_report_in_working_directory": "Finding Parasoft SOAtest XML report in working directory {0}...",
+    "found_multiple_reports_and_use_the_latest_one": "Found multiple Parasoft SOAtest XML reports and took the latest one: {0}",
     "soatest_report_not_found": "Parasoft SOAtest XML report not found at the specified location: {0}",
     "converting_soatest_report_to_xunit": "Converting Parasoft SOAtest report: {0} to xUnit report...",
     "converted_xunit_report": "XUnit report generated successfully: {0}",

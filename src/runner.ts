@@ -182,7 +182,7 @@ export class TestsRunner {
             if (reportFiles.length == 1) {
                 core.info(messagesFormatter.format(messages.found_xml_report, report));
             } else {
-                core.info(messagesFormatter.format(messages.find_latest_xml_report_in_working_directory, report));
+                core.info(messagesFormatter.format(messages.found_multiple_reports_and_use_the_latest_one, report));
             }
             return report;
         }

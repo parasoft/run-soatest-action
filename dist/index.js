@@ -159,7 +159,7 @@ class TestsRunner {
                 core.info(messages_1.messagesFormatter.format(messages_1.messages.found_xml_report, report));
             }
             else {
-                core.info(messages_1.messagesFormatter.format(messages_1.messages.find_latest_xml_report_in_working_directory, report));
+                core.info(messages_1.messagesFormatter.format(messages_1.messages.found_multiple_reports_and_use_the_latest_one, report));
             }
             return report;
         }

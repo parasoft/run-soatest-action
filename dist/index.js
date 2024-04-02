@@ -27276,7 +27276,7 @@ var __webpack_exports__ = {};
 var exports = __webpack_exports__;
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.add = exports.run = void 0;
+exports.run = void 0;
 const core = __nccwpck_require__(2186);
 const runner = __nccwpck_require__(8209);
 const messages_1 = __nccwpck_require__(9112);
@@ -27326,11 +27326,6 @@ exports.run = run;
 if (require.main === require.cache[eval('__filename')]) {
     run();
 }
-// Add this function for introduce test framework and will be removed in next pull request
-function add(a, b) {
-    return a + b;
-}
-exports.add = add;
 //# sourceMappingURL=main.js.map
 })();
 

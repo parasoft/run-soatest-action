@@ -2,4 +2,6 @@ extension:
   - ts
 spec: "tests/**/*.spec.ts"
 require: ts-node/register
-reporter: mocha-junit-reporter
+reporter: mocha-multi-reporters
+reporter-option:
+  - "configFile=mocha-reporter-config.json"

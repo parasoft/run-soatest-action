@@ -1,6 +1,8 @@
 # Run Parasoft SOAtest
 
 [![Build](https://github.com/parasoft/run-soatest-action/actions/workflows/build.yml/badge.svg)](https://github.com/parasoft/run-soatest-action/actions/workflows/build.yml)
+[![CodeQL](https://github.com/parasoft/run-soatest-action/actions/workflows/codeql-analysis.yml/badge.svg)](https://github.com/parasoft/run-soatest-action/actions/workflows/codeql-analysis.yml)
+[![Test](https://github.com/parasoft/run-soatest-action/actions/workflows/test.yml/badge.svg)](https://github.com/parasoft/run-soatest-action/actions/workflows/test.yml)
 
 This action enables you to run functional tests with Parasoft SOAtest and review results directly on GitHub.
 

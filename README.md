@@ -74,7 +74,7 @@ jobs:
 ```
 
 ### Uploading Test Results to GitHub
-By default, `convertReportToXUnit` parameter is set to true. This action generates XML report and convert to xUnit report. You can either upload the XML report as artifact or publish the results with `Publish Test Results` action which reads the converted xUnit report to review the results on GitHub. See [Publish Test Results](https://github.com/marketplace/actions/publish-test-results) for details.
+By default, the `convertReportToXUnit` parameter is set to true. This action generates XML report and converts to xUnit report. You can either upload the XML report as an artifact or publish the results with `Publish Test Results` action which reads the converted xUnit report to review the results on GitHub. See [Publish Test Results](https://github.com/marketplace/actions/publish-test-results) for details.
 
 #### Example
 
@@ -103,7 +103,7 @@ You can configure the test execution with Parasoft SOAtest in the following ways
 This section includes practical examples of how to customize the `Run SOAtest` action directly in the YAML file of your workflow.
 
 #### Configuring the Path to the SOAtest Installation Directory
-If `soatestcli` executable is unavailable on `PATH`, you can configure the path to the installation directory of Parasoft SOAtest, by configuring the `installDir` parameter:
+If `soatestcli` executable is unavailable on `PATH`, you can configure the path to the installation directory of Parasoft SOAtest by configuring the `installDir` parameter:
 
 ```yaml
 - name: Run SOAtest

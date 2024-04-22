@@ -74,24 +74,94 @@ jobs:
 ```
 
 ### Uploading Test Results to GitHub
-By default, the `convertReportToXUnit` parameter is set to true. This action generates XML report and converts to xUnit report. You can either upload the XML report as an artifact or publish the results with `Publish Test Results` action which reads the converted xUnit report to review the results on GitHub. See [Publish Test Results](https://github.com/marketplace/actions/publish-test-results) for details.
+By default, the `convertReportToXUnit` parameter is set to true. This action generates XML report and converts to xUnit report. You can upload the test reports in the following ways:
+- Upload the XML report to GitHub as an artifact.
+- Publish the results with another action which reads the converted xUnit report to review the results on GitHub. We recommend using [Publish Test Results](https://github.com/marketplace/actions/publish-test-results) and [Test Reporter](https://github.com/marketplace/actions/test-reporter) to publish the results to GitHub.
 
-#### Example
-
+#### Examples
+#### Upload the reports to GitHub as an artifact
 ```yaml
-# Upload the reports to GitHub as an artifact.
 - name: Upload report artifact
   uses: actions/upload-artifact@v4
   with:
     name: SOAtestReports # Artifact name
     path: /reports # Directory containing files to upload
+```
 
-# Publish the results with `Publish Test Results` action
-- name: Publish Test Results
-  uses: EnricoMi/publish-unit-test-result-action/windows@v2
+#### Publish Test Results
+Prerequisites
+- Require a Python3 environment to be setup on the action runner.
+- Self-hosted runners may require setting up a Python environment first:
+```yaml
+- name: Setup Python
+  uses: actions/setup-python@v5
   with:
-    files: |
-      reports/report-xunit.xml
+    python-version: 3.8
+```
+- Permissions:
+```yaml
+ permissions:
+  # Minimal workflow job permissions required by this action in public GitHub repositories
+  checks: write
+  pull-requests: write
+
+  # The following permissions are required in private GitHub repositories
+  contents: read
+  issues: read
+```
+
+Example
+```yaml
+jobs:
+  publish:
+    runs-on: windows-latest
+
+    permissions:
+      checks: write
+      pull-requests: write
+      contents: read
+      issues: read
+
+    steps:
+      - name: Publish Test Results
+        uses: EnricoMi/publish-unit-test-result-action/windows@v2
+        with:
+        files: |
+          reports/report-xunit.xml
+```
+
+#### Test Reporter
+Prerequisites
+- Permissions
+```yaml
+ permissions:
+  # Minimal workflow job permissions required by this action in public GitHub repositories
+  actions: read
+  checks: write
+
+  # The following permissions are required in private GitHub repositories
+  contents: read
+```
+
+Example
+```yaml
+jobs:
+  report:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      actions: read
+      checks: write
+
+    steps:
+      - name: Test Report
+        uses: dorny/test-reporter@v1
+        with:
+          name: 'xUnit Tests'                # Name of the check run which will be created
+          path: 'reports/report-xunit.xml'   # Path to test results
+          reporter: 'swift-xunit'            # Format of test results
+          fail-on-error: 'false'             # Set action as failed if test report contains any failed test
 ```
 
 ## Configuring Test Execution with SOAtest

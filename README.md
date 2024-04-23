@@ -76,7 +76,7 @@ jobs:
 ### Uploading Test Results to GitHub
 By default, the `convertReportToXUnit` parameter is set to true. This action generates XML report and converts to xUnit report. You can upload the test reports in the following ways:
 - Upload the XML report to GitHub as an artifact.
-- Publish the results with another action which reads the converted xUnit report to review the results on GitHub. We recommend using [Publish Test Results](https://github.com/marketplace/actions/publish-test-results) and [Test Reporter](https://github.com/marketplace/actions/test-reporter) to publish the results to GitHub.
+- Publish the results with another action which reads the converted xUnit report to review the results on GitHub. We recommend using `Publish Test Results` and `Test Reporter` to publish the results to GitHub.
 
 #### Examples
 #### Upload the reports to GitHub as an artifact
@@ -90,25 +90,7 @@ By default, the `convertReportToXUnit` parameter is set to true. This action gen
 
 #### Publish Test Results
 Prerequisites
-- Require a Python3 environment to be setup on the action runner.
-- Self-hosted runners may require setting up a Python environment first:
-```yaml
-- name: Setup Python
-  uses: actions/setup-python@v5
-  with:
-    python-version: 3.8
-```
-- Permissions:
-```yaml
- permissions:
-  # Minimal workflow job permissions required by this action in public GitHub repositories
-  checks: write
-  pull-requests: write
-
-  # The following permissions are required in private GitHub repositories
-  contents: read
-  issues: read
-```
+- Require a Python3 environment to be setup on the action runner that does not provide Docker. See [Running as a non-Docker action](https://github.com/marketplace/actions/publish-test-results#running-as-a-non-docker-action) for details.
 
 Example
 ```yaml
@@ -117,8 +99,11 @@ jobs:
     runs-on: windows-latest
 
     permissions:
+      # Minimal workflow job permissions required by this action in public GitHub repositories
       checks: write
       pull-requests: write
+  
+      # The following permissions are required in private GitHub repositories
       contents: read
       issues: read
 
@@ -129,20 +114,9 @@ jobs:
         files: |
           reports/report-xunit.xml
 ```
+See [Publish Test Results](https://github.com/marketplace/actions/publish-test-results) for details.
 
 #### Test Reporter
-Prerequisites
-- Permissions
-```yaml
- permissions:
-  # Minimal workflow job permissions required by this action in public GitHub repositories
-  actions: read
-  checks: write
-
-  # The following permissions are required in private GitHub repositories
-  contents: read
-```
-
 Example
 ```yaml
 jobs:
@@ -150,9 +124,12 @@ jobs:
     runs-on: ubuntu-latest
 
     permissions:
-      contents: read
+      # Minimal workflow job permissions required by this action in public GitHub repositories
       actions: read
       checks: write
+  
+      # The following permissions are required in private GitHub repositories
+      contents: read
 
     steps:
       - name: Test Report
@@ -163,6 +140,7 @@ jobs:
           reporter: 'swift-xunit'            # Format of test results
           fail-on-error: 'false'             # Set action as failed if test report contains any failed test
 ```
+See [Test Reporter](https://github.com/marketplace/actions/test-reporter) for details.
 
 ## Configuring Test Execution with SOAtest
 You can configure the test execution with Parasoft SOAtest in the following ways:

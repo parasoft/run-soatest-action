@@ -74,25 +74,72 @@ jobs:
 ```
 
 ### Uploading Test Results to GitHub
-By default, the `convertReportToXUnit` parameter is set to true. This action generates XML report and converts to xUnit report. You can either upload the XML report as an artifact or publish the results with `Publish Test Results` action which reads the converted xUnit report to review the results on GitHub. See [Publish Test Results](https://github.com/marketplace/actions/publish-test-results) for details.
+By default, the `convertReportToXUnit` parameter is set to true. This action generates XML report and converts to xUnit report. You can upload the test reports in the following ways:
+- Upload the XML report to GitHub as an artifact.
+- Publish the results with another action which reads the converted xUnit report to review the results on GitHub. We recommend using `Publish Test Results` and `Test Reporter` to publish the results to GitHub.
 
-#### Example
-
+#### Upload the reports to GitHub as an artifact
+Example
 ```yaml
-# Upload the reports to GitHub as an artifact.
 - name: Upload report artifact
   uses: actions/upload-artifact@v4
   with:
     name: SOAtestReports # Artifact name
     path: /reports # Directory containing files to upload
-
-# Publish the results with `Publish Test Results` action
-- name: Publish Test Results
-  uses: EnricoMi/publish-unit-test-result-action/windows@v2
-  with:
-    files: |
-      reports/report-xunit.xml
 ```
+
+#### Publish Test Results
+Prerequisites
+- A Python3 environment needs to be set up on the action runner if Docker is not provided. See [Running as a non-Docker action](https://github.com/marketplace/actions/publish-test-results#running-as-a-non-docker-action) for details.
+
+Example
+```yaml
+jobs:
+  publish:
+    runs-on: windows-latest
+
+    permissions:
+      # Minimal workflow job permissions required by this action in public GitHub repositories
+      checks: write
+      pull-requests: write
+  
+      # The following permissions are required in private GitHub repositories
+      contents: read
+      issues: read
+
+    steps:
+      - name: Publish Test Results
+        uses: EnricoMi/publish-unit-test-result-action/windows@v2
+        with:
+        files: |
+          reports/report-xunit.xml
+```
+See [Publish Test Results](https://github.com/marketplace/actions/publish-test-results) for details.
+
+#### Test Reporter
+Example
+```yaml
+jobs:
+  report:
+    runs-on: ubuntu-latest
+
+    permissions:
+      # Minimal workflow job permissions required by this action in public GitHub repositories
+      actions: read
+      checks: write
+  
+      # The following permissions are required in private GitHub repositories
+      contents: read
+
+    steps:
+      - name: Test Report
+        uses: dorny/test-reporter@v1
+        with:
+          name: 'xUnit Tests'                # Name of the check run which will be created
+          path: 'reports/report-xunit.xml'   # Path to test results
+          reporter: 'java-junit'             # Format of test results
+```
+See [Test Reporter](https://github.com/marketplace/actions/test-reporter) for details.
 
 ## Configuring Test Execution with SOAtest
 You can configure the test execution with Parasoft SOAtest in the following ways:

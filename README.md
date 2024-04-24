@@ -137,8 +137,7 @@ jobs:
         with:
           name: 'xUnit Tests'                # Name of the check run which will be created
           path: 'reports/report-xunit.xml'   # Path to test results
-          reporter: 'swift-xunit'            # Format of test results
-          fail-on-error: 'false'             # Set action as failed if test report contains any failed test
+          reporter: 'java-junit'             # Format of test results
 ```
 See [Test Reporter](https://github.com/marketplace/actions/test-reporter) for details.
 

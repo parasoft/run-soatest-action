@@ -1,0 +1,19 @@
+[
+    {
+        "purl" : "pkg:npm/string-format@2.0.0",
+        "licenses" : [
+            {
+                "license" : {
+                    "id" : "WTFPL",
+                    "url" : "https://spdx.org/licenses/WTFPL.html"
+                }
+            },
+            {
+                "license" : {
+                    "id" : "MIT",
+                    "url" : "http://www.opensource.org/licenses/mit-license.php"
+                }
+            }
+        ]
+    }
+]

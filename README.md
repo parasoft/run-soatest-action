@@ -203,30 +203,3 @@ The following inputs are available for this action:
 | `environment` | Name of the SOAtest environment to use for executing the tests.|
 | `convertReportToXUnit` | Enables the conversion of the SOAtest report into the xUnit format. The default is `true`.|
 | `additionalParams` | Additional parameters for the `soatestcli` executable. See [Parasoft SOAtest User Guide](https://docs.parasoft.com/display/SOA20232/CLI+Options#CLIOptions-OptionsReferences) for details.|
-
-## Local regression tests
-
-Use Node.js and Java 17 (set `JAVA_HOME`, or put `java` on `PATH`):
-
-```sh
-npm ci
-npm run compile
-npx mocha --no-config --require ts-node/register --reporter spec tests/soatest-xunit.spec.ts
-npm test
-```
-
-The focused Mocha suite transforms all six reports in `tests/fixtures/soatest/`
-with both `res/soatest-xunit.xsl` and the packaged `dist/soatest-xunit.xsl`, using
-each copy's bundled Saxon HE 12.2. It checks emitted counts, testcase isolation,
-message fallbacks, and preserved diagnostics. No SOAtest installation, license,
-or running server is needed.
-
-`npm run all` prepares `dist` with `npm run copy-files` before testing after
-a clean build. Standalone `npm test` checks the packaged files already in
-the checkout.
-
-These fixtures are byte-identical copies of the sanitized canonical reports in
-the shared `xslttemplates` repository (`tests/fixtures/`, CICD-1181). The execution-violation
-report and `association_edges.xml` are synthetic regression inputs. The visual
-report and three Change Advisor reports are sanitized report captures. The tests
-use only files in this repository and do not need that source checkout.

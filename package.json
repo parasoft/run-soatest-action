@@ -11,7 +11,7 @@
     "copy-files": "copyfiles --flat ./src/messages/*.json ./dist/messages && copyfiles --flat ./res/*.xsl ./dist && copyfiles --up 1 ./libs/SaxonHE12-2J/**/* ./dist",
     "package": "ncc build --license licenses.txt && npm run copy-files",
     "clean": "rimraf ./dist ./lib ./eslint ./coverage ./.nyc_output test-results.xml",
-    "all": "npm run clean && npm run compile && npm run lint && npm run test && npm run package && npm run extra-tasks",
+    "all": "npm run clean && npm run compile && npm run lint && npm run copy-files && npm run test && npm run package && npm run extra-tasks",
     "extra-tasks": "node ./scripts/extra-tasks.js"
   },
   "nyc": {
@@ -42,6 +42,7 @@
     "@typescript-eslint/eslint-plugin": "^7.2.0",
     "@typescript-eslint/parser": "^7.2.0",
     "@vercel/ncc": "^0.38.1",
+    "@xmldom/xmldom": "0.9.12",
     "@types/string-format": "^2.0.3",
     "@types/which": "^3.0.3",
     "eslint": "^8.57.0",
